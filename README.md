@@ -1,3 +1,6 @@
+Notes for collaboration methods and class designs:
+- https://docs.google.com/document/d/1hk6UIoUFeQurILgY8SrJHeUEdcINJ-Gnw2gLwtYSpO0/edit?tab=t.0
+
 # Team Project
 
 Please keep this up-to-date with information about your project throughout the term.
