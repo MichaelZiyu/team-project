@@ -1,0 +1,12 @@
+{
+  "startMenuState" : {
+    "generateMenu" : "generateMenuState",
+    "loadMenu" : "loadMenuState",
+    "Settings" : "settingMenuState",
+    "Exit" : "exitState"
+  },
+  "settingMenuState" : {
+    "Exit" : "startMenuState"
+  },
+  "exitState" : {}
+}

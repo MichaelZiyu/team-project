@@ -1,6 +1,6 @@
 package game;
 
-import States.State;
+import states.State;
 
 public abstract class Entity {
     int hp, attack;
