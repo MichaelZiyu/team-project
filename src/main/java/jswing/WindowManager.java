@@ -1,0 +1,54 @@
+package jswing;
+
+import states.State;
+
+import javax.swing.*;
+
+/**
+ * Renderer is a class that stores the game frame and renders any provided state(except exitState) from the game
+ */
+public class Renderer {
+
+    /** the main frame of the game*/
+    private JFrame frame;
+
+    /**default frame width and height*/
+    private static final int FRAME_WIDTH = 800;
+    private static final int FRAME_HEIGHT = 600;
+
+    public Renderer() {
+        this.frame = initializeFrame();
+    }
+
+    /**
+     * render any state provided(except exitState) by setting the contentpane of current frame to the state's panel,
+     * then refresh the frame
+     *
+     * @param state the state to render
+     *
+     */
+    public void render(State state) {
+        frame.setContentPane(state.panel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    /**
+     * initialize an exit-on-close JFrame by default sizes
+     *
+     * @return the JFrame initialized
+     *
+     */
+    private JFrame initializeFrame() {
+        JFrame frame = new JFrame("My Game");
+
+        frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
+
+        frame.setVisible(true);
+
+        return frame;
+    }
+}
