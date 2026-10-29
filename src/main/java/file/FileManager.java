@@ -11,6 +11,9 @@ import java.util.Map;
 
 public class FileManager {
 
+    //this method should be done using some packages such as jackson or gson
+    //which need some changes in pom.xml.
+    //TODO Jimmy should decide how to implement this method.
     public static Map<String, Map<String, String>> loadtransition() {
         try (InputStream input = FileManager.class.getResourceAsStream("transitions.json")) {
             if (input == null) {

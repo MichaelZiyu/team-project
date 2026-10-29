@@ -1,4 +1,7 @@
 package game;
 
-public class Player {
+public class Player extends Entity{
+
+    private Inventory inventory;
+
 }

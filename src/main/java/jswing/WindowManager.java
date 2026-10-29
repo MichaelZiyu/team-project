@@ -5,9 +5,9 @@ import states.State;
 import javax.swing.*;
 
 /**
- * Renderer is a class that stores the game frame and renders any provided state(except exitState) from the game
+ * WindowManager is a class that stores the game frame and show any provided state(except exitState) from the game
  */
-public class Renderer {
+public class WindowManager {
 
     /** the main frame of the game*/
     private JFrame frame;
@@ -16,18 +16,18 @@ public class Renderer {
     private static final int FRAME_WIDTH = 800;
     private static final int FRAME_HEIGHT = 600;
 
-    public Renderer() {
+    public WindowManager() {
         this.frame = initializeFrame();
     }
 
     /**
-     * render any state provided(except exitState) by setting the contentpane of current frame to the state's panel,
+     * show any state provided(except exitState) by setting the contentpane of current frame to the state's panel,
      * then refresh the frame
      *
-     * @param state the state to render
+     * @param state the state to show
      *
      */
-    public void render(State state) {
+    public void setWindow(State state) {
         frame.setContentPane(state.panel);
         frame.revalidate();
         frame.repaint();

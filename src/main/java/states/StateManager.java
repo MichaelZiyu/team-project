@@ -1,19 +1,18 @@
 package states;
 
-import jswing.Panels;
-
-import java.util.List;
+import jswing.PanelManager;
 
 
 /**
  * Static class responsible for initializing, storing, and managing all game states.
  * Provides public access to predefined states.
  */
-public class States {
+public class StateManager {
 
-    public static final TitleState startMenuState = new TitleState("startMenuState", Panels.startMenuPanel);
+    public static final TitleState startMenuState = new TitleState("startMenuState", PanelManager.startMenuPanel);
     public static final TitleState settingMenuState = new TitleState("settingMenuState",
-            Panels.settingMenuPanel);
+            PanelManager.settingMenuPanel);
     public static final TitleState exitState = new TitleState("exitState", null);
+
 
 }

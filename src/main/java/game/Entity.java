@@ -3,7 +3,9 @@ package game;
 import states.State;
 
 public abstract class Entity {
-    int hp, attack;
-    double x, y, z;
-    State actionState, statusState;
+    public int hp, attack;
+    public double[] coordinate, velocity;
+    private State actionState, statusState;
+
+    protected abstract void attack(Entity entity);
 }

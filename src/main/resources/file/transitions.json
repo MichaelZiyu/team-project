@@ -5,8 +5,17 @@
     "Settings" : "settingMenuState",
     "Exit" : "exitState"
   },
+
   "settingMenuState" : {
     "Exit" : "startMenuState"
   },
-  "exitState" : {}
+
+  "exitState" : {},
+  "topdownState" : {
+    "enterCave" : "front2DState"
+  },
+
+  "front2DState" : {
+    "exitCave" : "topdownState"
+  }
 }

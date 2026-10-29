@@ -3,7 +3,10 @@ package jswing;
 import javax.swing.*;
 import game.GameController;
 
-public class Panels {
+/**
+ * initialize and store any panel used in the game
+ */
+public class PanelManager {
 
     public static final JPanel startMenuPanel = createStartMenuPanel();
     public static final JPanel settingMenuPanel = createSettingMenuPanel();
