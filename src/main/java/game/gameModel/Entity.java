@@ -1,45 +1,50 @@
 package game.gameModel;
 
+import states.EntityState;
+
 import java.io.Serializable;
 
-public abstract class Entity implements Serializable {
+public abstract class Entity extends PhysicsBody implements Renderable, Serializable {
     private static final long serialVersionUID = 1L;
 
     protected int hp, attack, maxHp;
-    protected double[] coordinate = {0.0, 0.0, 0.0};
-    protected double[] velocity = {0.0, 0.0, 0.0};
-//    private ActionState actionState;
-//    private StatusState statusState;
+
+    private EntityState state;
+    private WorldView view;
+
     protected boolean dead = false;
-
     protected Inventory inventory;
+    protected int tick = 0;
 
-    protected WorldView view;
+    protected Object texture;
 
-    public Entity(int attack, int maxHp, WorldView view) {
+    public Entity(int attack, int maxHp, String name, WorldView view) {
+        super();
         this.maxHp = maxHp;
         this.hp = maxHp;
         this.attack = attack;
         this.inventory = new Inventory();
         this.view = view;
+        loadTexture();
+    }
+
+    @Override
+    public String texturePath() {
+        return view + "/" + state;
+    }
+
+    private void loadTexture() {
+
+    }
+
+    /**
+     * get texture that the entity should show right now, depending on current state and tick
+     * @return
+     */
+    @Override
+    public Object getTexture() {
+        return null;
     }
 
 
-    void attack(Entity entity) {
-        entity.injure(attack, this);
-    }
-
-    void injure(int damage, Entity source) {
-
-    }
-
-//    void setStatusState(StatusState)
-
-    public boolean isDead() {
-        return dead;
-    }
-
-    public void tp(double[] coordinate) {
-        this.coordinate = coordinate;
-    }
 }

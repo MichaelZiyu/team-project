@@ -2,14 +2,16 @@ package states;
 
 import file.FileManager;
 
+import game.GameController;
 import jswing.*;
+import testpackage.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Controller of all PanelState, including title menus and game UIs.
- * Static class
+ * Controls all page transitions by providing static and public attributes and methods
  */
 public class PanelStateController {
 
@@ -47,9 +49,16 @@ public class PanelStateController {
      *
      */
     public static void transition(String input) {
-        state = (PanelState) state.transition(input);
+        setState((PanelState) state.transition(input));
         if (state.panel == null) System.exit(0);
         setWindow();
+        if (state == StateManager.gameState) {
+            GameController.start();
+        }
+    }
+
+    public static void setState(PanelState state) {
+        PanelStateController.state = state;
     }
 
     public static void register(String name, State state) {

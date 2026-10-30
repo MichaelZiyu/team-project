@@ -3,6 +3,7 @@ package file;
 
 import game.World;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -11,6 +12,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.*;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 /**
  *Manages game save data
@@ -30,7 +34,7 @@ public class FileManager {
 
     //this method should be done using some packages such as jackson or gson
     //which need some changes in pom.xml.
-    //*TODO Jimmy should decide how to implement this method.*
+    //TODO we should discuss how we save and load transition function maps
     public static Map<String, Map<String, String>> loadtransition() {
         try (InputStream input = FileManager.class.getResourceAsStream("transitions.json")) {
             if (input == null) {
@@ -384,4 +388,70 @@ public class FileManager {
             throw new RuntimeException("Failed to save world: " + filename, e);
         }
     }
+
+    /**
+     * load one texture from provided path
+     *
+     * @param texturePath a path to the texture relative to resources/textures
+     *
+     * @return Component object which can be added to JPanel
+     */
+    public static Component getTexture(String texturePath) {
+        String path = "resources/textures/" + texturePath;
+
+        ImageIcon icon = new ImageIcon(path);
+        return new JLabel(icon);
+    }
+
+    /**
+     * Load a list of textures for sprite animation from the provided path.
+     * Sort images by their filenames.
+     *
+     * @param texturePath a path relative to resources/textures
+     * @return a list of JLabel objects which can be added to JPanel
+     */
+    public static List<JLabel> getListTexture(String texturePath) {
+        Path directory = Path.of("resources", "textures", texturePath);
+
+        if (!Files.isDirectory(directory)) {
+            throw new IllegalArgumentException(
+                    "Texture directory does not exist: " + directory
+            );
+        }
+
+        List<Path> imageFiles = new ArrayList<>();
+
+        try (Stream<Path> files = Files.list(directory)) {
+            files.filter(Files::isRegularFile)
+                    .filter(file -> file.getFileName().toString()
+                            .matches("(?i).*\\.(png|jpg|jpeg|gif)$"))
+                    .forEach(imageFiles::add);
+
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to read texture directory: " + directory, e
+            );
+        }
+
+        imageFiles.sort(Comparator.comparing(
+                file -> file.getFileName().toString()
+        ));
+
+        List<JLabel> textures = new ArrayList<>();
+
+        for (Path file : imageFiles) {
+            ImageIcon icon = new ImageIcon(file.toString());
+
+            if (icon.getIconWidth() <= 0 || icon.getIconHeight() <= 0) {
+                throw new RuntimeException(
+                        "Failed to load image: " + file
+                );
+            }
+
+            textures.add(new JLabel(icon));
+        }
+
+        return textures;
+    }
+
 }

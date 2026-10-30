@@ -4,7 +4,7 @@ import java.util.Map;
 
 public class Block extends Item {
 
-    public Block(String name, WorldView view, Map<WorldView.ViewState, String> filepathIndex) {
-        super(name, view, filepathIndex);
+    public Block(String name, WorldView view) {
+        super(name, view);
     }
 }

@@ -1,3 +1,5 @@
+package testpackage;
+
 import system.InputBuffer;
 
 import javax.swing.*;

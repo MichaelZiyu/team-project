@@ -2,7 +2,7 @@
   "startMenuState" : {
     "generateMenu" : "generateMenuState",
     "loadMenu" : "loadMenuState",
-    "Settings" : "settingMenuState",
+    "settings" : "settingMenuState",
     "Exit" : "exitState"
   },
 
@@ -13,5 +13,9 @@
   "exitState" : {},
   "gameState" : {
     "Exit" : "loadMenuState"
+  },
+  "loadMenuState" : {
+    "Exit" : "startMenuState",
+    "load" : "gameState"
   }
 }

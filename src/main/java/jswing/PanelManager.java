@@ -7,6 +7,8 @@ import game.GameController;
 import states.PanelStateController;
 import game.World;
 
+import java.awt.*;
+
 /**
  * initialize and store any panel used in the game
  */
@@ -15,8 +17,9 @@ public class PanelManager {
     public static final JPanel startMenuPanel = createStartMenuPanel();
     public static final JPanel settingMenuPanel = createSettingMenuPanel();
     public static final JPanel loadMenuPanel = createLoadMenuPanel();
-
     public static final JPanel gamePanel = createGamePanel();
+
+    public static final JPanel pausePanel = createPausePanel();
 
     private static JPanel createStartMenuPanel() {
         JPanel panel = new JPanel();
@@ -32,7 +35,7 @@ public class PanelManager {
         });
 
         settingsButton.addActionListener(e -> {
-            PanelStateController.transition("Settings");
+            PanelStateController.transition("settings");
         });
 
         exitButton.addActionListener((e -> {
@@ -67,14 +70,18 @@ public class PanelManager {
 
         JButton exitButton = new JButton("Exit");
         JComboBox<String> list = new JComboBox<>(FileManager.getSaves());
+        list.setMaximumSize(new Dimension(200, 30));
+        list.setPreferredSize(new Dimension(200, 30));
+        list.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         JButton loadButton = new JButton("Load");
 
         loadButton.addActionListener(e -> { // should make the game run
-            PanelStateController.transition("gameState");
             String selected = (String) list.getSelectedItem();
             FileManager file = new FileManager(selected);
             World world = file.loadSave();
             GameController.initializeGame(world, file);
+            PanelStateController.transition("load");
         });
 
         exitButton.addActionListener(e -> {
@@ -82,14 +89,28 @@ public class PanelManager {
         });
 
         panel.add(list);
-        panel.add(exitButton);
         panel.add(loadButton);
+        panel.add(exitButton);
 
         return panel;
     }
 
     private static JPanel createGamePanel() {
         JPanel panel = new JPanel();
+        panel.setLayout(null);
+        return panel;
+    }
+
+    private static JPanel createPausePanel() {
+        JPanel panel = new JPanel();
+
+        JButton returnButton = new JButton("return the game");
+
+        returnButton.addActionListener(e -> {
+            PanelStateController.transition("return");
+        });
+
+        panel.add(returnButton);
         return panel;
     }
 }
