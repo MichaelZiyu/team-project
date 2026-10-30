@@ -1,6 +1,6 @@
 package jswing;
 
-import states.State;
+import states.PanelState;
 
 import javax.swing.*;
 
@@ -21,13 +21,13 @@ public class WindowManager {
     }
 
     /**
-     * show any state provided(except exitState) by setting the contentpane of current frame to the state's panel,
+     * show any title state provided(except exitState) by setting the contentpane of current frame to the state's panel,
      * then refresh the frame
      *
-     * @param state the state to show
+     * @param state the title state to show
      *
      */
-    public void setWindow(State state) {
+    public void setWindow(PanelState state) {
         frame.setContentPane(state.panel);
         frame.revalidate();
         frame.repaint();

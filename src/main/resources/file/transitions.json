@@ -11,11 +11,7 @@
   },
 
   "exitState" : {},
-  "topdownState" : {
-    "enterCave" : "front2DState"
-  },
-
-  "front2DState" : {
-    "exitCave" : "topdownState"
+  "gameState" : {
+    "Exit" : "loadMenuState"
   }
 }
