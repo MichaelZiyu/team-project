@@ -18,7 +18,7 @@ public class GameController {
 
     private static World world;
     private static FileManager file;
-    private static final long FRAME_TIME = 1_000_000_000L / 60;
+    public static final double FRAME_TIME = 1.0 / 60.0;
     private static final JPanel mainPanel = StateManager.gameState.panel;
     private static Renderer renderer;
 
@@ -47,7 +47,7 @@ public class GameController {
             world.tick();
 
             long elapsed = System.nanoTime() - startTime;
-            long remaining = FRAME_TIME - elapsed;
+            long remaining = (long) (FRAME_TIME * 1_000_000_000L) - elapsed;
             if (remaining > 0) {
                 try {
                     Thread.sleep(

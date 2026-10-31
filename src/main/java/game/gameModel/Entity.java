@@ -11,7 +11,7 @@ import java.util.Set;
 public abstract class Entity extends PhysicsBody implements Renderable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    int hp, attack, maxHp;
+    int hp, attack, maxHp, speed;
     String name;
 
     EntityStateManager stateManager = new EntityStateManager();
@@ -20,7 +20,7 @@ public abstract class Entity extends PhysicsBody implements Renderable, Serializ
 
     Inventory inventory;
 
-    public Entity(int attack, int maxHp, String name, WorldView view) {
+    public Entity(int attack, int maxHp, String name, WorldView view, int speed) {
         super();
         this.name = name;
         this.maxHp = maxHp;
@@ -28,6 +28,7 @@ public abstract class Entity extends PhysicsBody implements Renderable, Serializ
         this.attack = attack;
         this.inventory = new Inventory();
         this.view = view;
+        this.speed = speed;
         loadTexture();
     }
 

@@ -16,8 +16,8 @@ public class Test {
         System.out.println("");
     }
     public static String input() { return new java.util.Scanner(System.in).nextLine(); }
-    public static String input(String words) {
-        System.out.print(words);
+    public static String input(Object words) {
+        System.out.print(words + "");
         return input();
     }
 

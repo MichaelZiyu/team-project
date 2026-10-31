@@ -20,9 +20,8 @@ public class World implements Serializable {
     private String seed;
     public boolean pause = false;
 
-    //TODO these two attributes are temporary
+    //TODO temporary
     private int tickCount = 0;
-    public int time = 0;
 
     public World(String seed) {
         this.seed = seed;
@@ -54,16 +53,18 @@ public class World implements Serializable {
             case "+esc" : {
                 this.pause = true;
             }
-            case "+w" : {
-
+            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" : {
+                CommandProcessor.handle(command);
             }
         }
+        player.handleCommand();
     }
 
     public void tick() {
         if (pause) return;
-        this.tickCount = (int) (tickCount + 1) % 36000;
-        if ((int) (tickCount % 60) == 0) this.time += 1;
+        for (Entity entity : entities) {
+            entity.tick();
+        }
     }
 
     public void loadTexture() {

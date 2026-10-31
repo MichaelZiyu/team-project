@@ -19,6 +19,7 @@ public class Renderer {
         panel.removeAll();
 
         for (Renderable renderable : renderables) {
+            //TODO change to Graphics2D in order to support double coordinates
             JLabel component = renderable.getTexture().getContent();
 
             component.setBounds(
