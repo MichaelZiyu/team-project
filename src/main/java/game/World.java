@@ -1,18 +1,21 @@
 package game;
 
+import file.FileManager;
+import game.gameModel.Entity;
 import game.gameModel.Player;
 import game.gameModel.Renderable;
 import game.gameModel.Scene;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public class World implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final WorldView view = new WorldView();
     private Player player;
-//    private Set<Entity> entities;
+    private Set<Entity> entities;
     List<Scene> sceneLayers;
     private String seed;
     public boolean pause = false;
@@ -32,7 +35,12 @@ public class World implements Serializable {
 
     //TODO test case
     private void sample() {
+
         this.player = new Player("samplePlayer", view);
+        this.sceneLayers = List.of(
+                new Scene(Set.of(player))
+        );
+        this.entities = Set.of(player);
     }
 
     Iterable<Renderable> render() {
@@ -56,6 +64,16 @@ public class World implements Serializable {
         if (pause) return;
         this.tickCount = (int) (tickCount + 1) % 36000;
         if ((int) (tickCount % 60) == 0) this.time += 1;
+    }
+
+    public void loadTexture() {
+        for (Entity entity : entities) {
+            entity.loadTexture();
+        }
+    }
+
+    public static void main(String[] args) {
+        (new FileManager("sample")).saveWorld(new World());
     }
 
 

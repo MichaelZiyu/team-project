@@ -411,7 +411,9 @@ public class FileManager {
      * @return a list of JLabel objects which can be added to JPanel
      */
     public static List<JLabel> getListTexture(String texturePath) {
-        Path directory = Path.of("resources", "textures", texturePath);
+        Path directory = Path.of(
+                "src", "main", "resources", "textures", texturePath
+        );
 
         if (!Files.isDirectory(directory)) {
             throw new IllegalArgumentException(

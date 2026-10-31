@@ -25,6 +25,7 @@ public class GameController {
     public static void initializeGame(World world, FileManager file) {
         GameController.world = world;
         world.pause = false;
+        world.loadTexture();
         GameController.file = file;
         GameController.renderer = new Renderer(mainPanel);
     }

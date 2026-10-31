@@ -1,26 +1,28 @@
 package game.gameModel;
 
 import game.WorldView;
+import jswing.Texture;
 import states.EntityState;
+import states.EntityStateManager;
 
 import java.io.Serializable;
+import java.util.Set;
 
 public abstract class Entity extends PhysicsBody implements Renderable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    protected int hp, attack, maxHp;
+    int hp, attack, maxHp;
+    String name;
 
-    private EntityState state;
-    private WorldView view;
+    EntityStateManager stateManager = new EntityStateManager();
+    EntityState currentState = stateManager.rest;
+    WorldView view;
 
-    protected boolean dead = false;
-    protected Inventory inventory;
-    protected int tick = 0;
-
-    protected Object texture;
+    Inventory inventory;
 
     public Entity(int attack, int maxHp, String name, WorldView view) {
         super();
+        this.name = name;
         this.maxHp = maxHp;
         this.hp = maxHp;
         this.attack = attack;
@@ -29,22 +31,31 @@ public abstract class Entity extends PhysicsBody implements Renderable, Serializ
         loadTexture();
     }
 
+    public abstract void loadTexture();
+
     @Override
-    public String texturePath() {
-        return view + "/" + state;
+    public int getX() {
+        return (int) this.coordinate[0];
     }
 
-    private void loadTexture() {
-
+    @Override
+    public int getY() {
+        return (int) this.coordinate[1];
     }
 
-    /**
-     * get texture that the entity should show right now, depending on current state and tick
-     * @return
-     */
     @Override
-    public Object getTexture() {
-        return null;
+    public int getWidth() {
+        return currentState.getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return currentState.getHeight();
+    }
+
+    @Override
+    public Texture getTexture() {
+        return currentState.getTexture();
     }
 
 

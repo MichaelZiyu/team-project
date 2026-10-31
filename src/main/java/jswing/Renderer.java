@@ -16,6 +16,20 @@ public class Renderer {
     }
 
     public void render(Iterable<Renderable> renderables) {
+        panel.removeAll();
+
+        for (Renderable renderable : renderables) {
+            JLabel component = renderable.getTexture().getContent();
+
+            component.setBounds(
+                    renderable.getX(),
+                    renderable.getY(),
+                    renderable.getWidth(),
+                    renderable.getHeight()
+            );
+
+            panel.add(component);
+        }
         panel.revalidate();
         panel.repaint();
     }
