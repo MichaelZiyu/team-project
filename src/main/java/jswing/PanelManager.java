@@ -22,31 +22,22 @@ public class PanelManager {
     public static final JPanel pausePanel = createPausePanel();
 
     private static JPanel createStartMenuPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        return new StartMenuPanel(
+                // Start Game
+                () -> {
+                    if (FileManager.getSaves().length == 0) {
+                        PanelStateController.transition("generateMenu");
+                    } else {
+                        PanelStateController.transition("loadMenu");
+                    }
+                },
 
-        JButton startButton = new JButton("Start");
-        JButton settingsButton = new JButton("Settings");
-        JButton exitButton = new JButton("Exit");
+                // Settings
+                () -> PanelStateController.transition("settings"),
 
-        startButton.addActionListener(e -> {
-            if (FileManager.getSaves().length == 0) PanelStateController.transition("generateMenu");
-            else PanelStateController.transition("loadMenu");
-        });
-
-        settingsButton.addActionListener(e -> {
-            PanelStateController.transition("settings");
-        });
-
-        exitButton.addActionListener((e -> {
-            PanelStateController.transition("Exit");
-        }));
-
-        panel.add(startButton);
-        panel.add(settingsButton);
-        panel.add(exitButton);
-
-        return panel;
+                // Exit
+                () -> PanelStateController.transition("Exit")
+        );
     }
 
     private static JPanel createSettingMenuPanel() {
