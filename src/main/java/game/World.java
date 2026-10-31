@@ -1,10 +1,8 @@
 package game;
 
-import file.FileManager;
 import game.gameModel.Player;
 import game.gameModel.Renderable;
 import game.gameModel.Scene;
-import game.gameModel.WorldView;
 
 import java.io.Serializable;
 import java.util.List;
@@ -37,8 +35,10 @@ public class World implements Serializable {
         this.player = new Player("samplePlayer", view);
     }
 
-    List<Object> render() {
-        return null;
+    Iterable<Renderable> render() {
+        return () -> sceneLayers.stream()
+                .flatMap(scene -> scene.getContent().stream())
+                .iterator();
     }
 
     public void takeCommand(String command) {

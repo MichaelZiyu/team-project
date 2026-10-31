@@ -26,18 +26,17 @@ public class GameController {
         GameController.world = world;
         world.pause = false;
         GameController.file = file;
-        GameController.renderer = new Renderer(mainPanel, world);
+        GameController.renderer = new Renderer(mainPanel);
     }
 
     public static void run() {
         InputBuffer input = new InputBuffer();
-        long lastTime = System.nanoTime();
 
         while (!world.pause) {
 
             long startTime = System.nanoTime();
 
-            // give world legal commands observed during this frame
+            // provide world with filtered commands from input event captured during current frame
             for (AWTEvent event : input.getInput()) {
                 String command = Command.translate(event);
                 if (command != null) {
@@ -64,7 +63,7 @@ public class GameController {
             // Execute it on the EDT to ensure thread-safe Swing component updates.
             try {
                 SwingUtilities.invokeAndWait(() -> {
-                    renderer.render();
+                    renderer.render(world.render());
                 });
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

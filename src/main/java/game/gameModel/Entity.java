@@ -1,5 +1,6 @@
 package game.gameModel;
 
+import game.WorldView;
 import states.EntityState;
 
 import java.io.Serializable;

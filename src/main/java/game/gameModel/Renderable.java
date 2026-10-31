@@ -21,9 +21,9 @@ public interface Renderable extends Serializable {
      * @return object that can be directly processed by the renderer chosen for the project
      */
     Object getTexture();
-//    int getX();
-//    int getY();
-//    int getWidth();
-//    int getHeight();
+    int getX();
+    int getY();
+    int getWidth();
+    int getHeight();
 
 }
