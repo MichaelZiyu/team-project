@@ -15,15 +15,11 @@ By keeping this README up-to-date,
 your team will find it easier to prepare for the final presentation
 at the end of the term.
 
-Updated 2026-10-05 by Henry
-Project Idea: Clone of a 2d of Minecraft
-Current features in mind: 2d limited map, sandbox game functions
-
 User Story:
-1. As a player, I want to be able to move my character and jump so I can explore the map.
-2. As a player, I want to break blocks so I can collect resources.
-3. As a player, I want to have a inventory and craft new tools with my resources so I can progress in game.
-4. As a player, I want to build blocks so I can exhibit my creativity in game.
+1. As a player, I want to be able to move my character so I can explore the map.
+2. As a player, I want to fight monsters so that I can enjoy the excitement of combat.
+3. As a player, I want to be able to play online with other players.
+4. As a player, what is the fourth one?
 
 APIs in Project:
-1.
+1. used in multiplayer or trading system or leaderboard

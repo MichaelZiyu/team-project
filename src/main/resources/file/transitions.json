@@ -1,0 +1,21 @@
+{
+  "startMenuState" : {
+    "generateMenu" : "generateMenuState",
+    "loadMenu" : "loadMenuState",
+    "settings" : "settingMenuState",
+    "Exit" : "exitState"
+  },
+
+  "settingMenuState" : {
+    "Exit" : "startMenuState"
+  },
+
+  "exitState" : {},
+  "gameState" : {
+    "Exit" : "loadMenuState"
+  },
+  "loadMenuState" : {
+    "Exit" : "startMenuState",
+    "load" : "gameState"
+  }
+}
