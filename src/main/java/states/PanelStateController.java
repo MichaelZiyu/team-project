@@ -48,7 +48,7 @@ public class PanelStateController {
      *
      */
     public static void transition(String input) {
-        setState(state.transition(input));
+        PanelStateController.state = state.transition(input);
         if (state.panel == null) System.exit(0);
         setWindow();
         if (state == StateManager.gameState) {
@@ -56,9 +56,6 @@ public class PanelStateController {
         }
     }
 
-    public static void setState(PanelState state) {
-        PanelStateController.state = state;
-    }
 
     public static void register(String name, PanelState state) {
         registry.put(name, state);
