@@ -9,5 +9,5 @@ public abstract class ActionState extends EntityState{
         super(name, entity);
     }
 
-    public abstract ActionState handleCommand(Player.PlayerCommand command);
+    public abstract String handleCommand(Player.PlayerCommand command);
 }

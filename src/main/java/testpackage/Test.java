@@ -20,8 +20,10 @@ public class Test {
         System.out.println("");
     }
     public static String input() { return new java.util.Scanner(System.in).nextLine(); }
-    public static String input(Object words) {
-        System.out.print(words + "");
+    public static String input(Object... words) {
+        for (Object word : words) {
+            System.out.print(word + "");
+        }
         return input();
     }
 

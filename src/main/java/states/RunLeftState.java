@@ -3,15 +3,21 @@ package states;
 import game.gameModel.Entity;
 import game.gameModel.Player;
 
-public class RunningState extends ActionState{
+public class RunLeftState extends ActionState{
 
-    public RunningState(Entity entity) {
-        super("running", entity);
+    public RunLeftState(Entity entity) {
+        super("runleft", entity);
     }
 
     @Override
     public String handleCommand(Player.PlayerCommand command) {
-
-        return "running";
+        switch (command) {
+            case Player.PlayerCommand.CANCEL_RUN -> {
+                return "moveleft";
+            }
+            default -> {
+                return "runleft";
+            }
+        }
     }
 }

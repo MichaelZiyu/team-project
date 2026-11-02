@@ -2,6 +2,7 @@ package states;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
+import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.*;
@@ -12,21 +13,22 @@ public class EntityStateManager implements Serializable {
     public final Map<StatusState, Integer> statusStates = new HashMap<>();
     public final Set<StatusState> currentStatusStates = new HashSet<>();
 
-    public final Set<ActionState> actionStates = new HashSet<>();
+    public final Map<String, ActionState> actionStates = new HashMap<>();
     public ActionState currentActionState;
 
     private Entity entity;
 
     public EntityStateManager(Entity entity) {
         this.entity = entity;
-        this.currentActionState = new RestState(entity);
         register();
+        this.currentActionState = actionStates.get("rest");
     }
 
     private void register() {
-        actionStates.addAll(Set.of(
-                new RestState(entity),
-                new RunningState(entity)
+        actionStates.putAll(Map.of(
+                "rest", new RestState(entity),
+                "moveleft", new MoveLeftState(entity),
+                "runleft", new RunLeftState(entity)
         ));
         statusStates.putAll(Map.of(
                 //TODO status states
@@ -37,7 +39,9 @@ public class EntityStateManager implements Serializable {
         for (StatusState state : statusStates.keySet()) {
             state.loadTexture(texturePath);
         }
-        currentActionState.loadTexture(texturePath);
+        for (ActionState state : actionStates.values()) {
+            state.loadTexture(texturePath);
+        }
     }
 
     public void tick() {
@@ -54,7 +58,6 @@ public class EntityStateManager implements Serializable {
                 status.resetTickCount();
             }
         }
-
         currentActionState.tick();
     }
 
@@ -65,7 +68,8 @@ public class EntityStateManager implements Serializable {
     }
 
     public void handleCommand(Player.PlayerCommand command) {
-        currentActionState = currentActionState.handleCommand(command);
+        currentActionState = actionStates.get(currentActionState.handleCommand(command));
+        Test.print(currentActionState);
     }
 
 

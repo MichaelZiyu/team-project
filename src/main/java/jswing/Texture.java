@@ -12,10 +12,13 @@ public class Texture {
 
     private int tickCount = 0;
     private int currentFrame = 0;
+    private String path;
 
     public Texture(String texturePath) {
         Map<JLabel, Integer> loaded =
                 FileManager.getListTexture(texturePath);
+
+        this.path = texturePath;
 
         this.textures = new ArrayList<>(loaded.keySet());
         this.durations = new ArrayList<>(loaded.values());
@@ -40,5 +43,10 @@ public class Texture {
 
     public int getHeight() {
         return getContent().getIcon().getIconHeight();
+    }
+
+    public String toString() {
+        return "path: " + this.path
+                + "\n" + textures;
     }
 }

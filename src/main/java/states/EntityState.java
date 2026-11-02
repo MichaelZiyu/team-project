@@ -43,6 +43,10 @@ public class EntityState implements Renderable, Serializable {
         this.texture = new Texture(texturePath + "/" + name);
     }
 
+    public String toString() {
+        return this.name;
+    }
+
     @Override
     public Texture getTexture() {
         return texture;
