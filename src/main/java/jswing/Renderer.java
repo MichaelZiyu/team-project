@@ -1,6 +1,6 @@
 package jswing;
 
-import game.World;
+import game.gameModel.Renderable;
 
 import javax.swing.*;
 
@@ -9,21 +9,28 @@ import javax.swing.*;
  */
 public class Renderer {
 
-    private World world;
     private JPanel panel;
-    JTextField text = new JTextField();
 
-
-    public Renderer (JPanel panel, World world) {
-
-        this.world = world;
+    public Renderer (JPanel panel) {
         this.panel = panel;
-        panel.add(text);
-        text.setBounds(10,10,100,30);
     }
 
-    public void render() {
-        text.setText(world.time + "");
+    public void render(Iterable<Renderable> renderables) {
+        panel.removeAll();
+
+        for (Renderable renderable : renderables) {
+            //TODO change to Graphics2D in order to support double coordinates
+            JLabel component = renderable.getTexture().getContent();
+
+            component.setBounds(
+                    renderable.getX(),
+                    renderable.getY(),
+                    renderable.getWidth(),
+                    renderable.getHeight()
+            );
+
+            panel.add(component);
+        }
         panel.revalidate();
         panel.repaint();
     }

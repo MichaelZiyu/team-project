@@ -1,8 +1,6 @@
-package game.gameModel;
+package game;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class WorldView implements Serializable {
     private static final long serialVersionUID = 1L;

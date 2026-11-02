@@ -1,6 +1,6 @@
 package game.gameModel;
 
-import java.util.Map;
+import game.WorldView;
 
 public class Item {
 

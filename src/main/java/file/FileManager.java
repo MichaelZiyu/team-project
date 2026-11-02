@@ -403,15 +403,10 @@ public class FileManager {
         return new JLabel(icon);
     }
 
-    /**
-     * Load a list of textures for sprite animation from the provided path.
-     * Sort images by their filenames.
-     *
-     * @param texturePath a path relative to resources/textures
-     * @return a list of JLabel objects which can be added to JPanel
-     */
-    public static List<JLabel> getListTexture(String texturePath) {
-        Path directory = Path.of("resources", "textures", texturePath);
+    public static Map<JLabel, Integer> getListTexture(String texturePath) {
+        Path directory = Path.of(
+                "src", "main", "resources", "textures", texturePath
+        );
 
         if (!Files.isDirectory(directory)) {
             throw new IllegalArgumentException(
@@ -424,7 +419,7 @@ public class FileManager {
         try (Stream<Path> files = Files.list(directory)) {
             files.filter(Files::isRegularFile)
                     .filter(file -> file.getFileName().toString()
-                            .matches("(?i).*\\.(png|jpg|jpeg|gif)$"))
+                            .matches("(?i).*-[0-9]+\\.(png|jpg|jpeg|gif)$"))
                     .forEach(imageFiles::add);
 
         } catch (IOException e) {
@@ -437,9 +432,18 @@ public class FileManager {
                 file -> file.getFileName().toString()
         ));
 
-        List<JLabel> textures = new ArrayList<>();
+        Map<JLabel, Integer> textures = new LinkedHashMap<>();
 
         for (Path file : imageFiles) {
+            String filename = file.getFileName().toString();
+
+            int duration = Integer.parseInt(
+                    filename.substring(
+                            filename.lastIndexOf('-') + 1,
+                            filename.lastIndexOf('.')
+                    )
+            );
+
             ImageIcon icon = new ImageIcon(file.toString());
 
             if (icon.getIconWidth() <= 0 || icon.getIconHeight() <= 0) {
@@ -448,7 +452,7 @@ public class FileManager {
                 );
             }
 
-            textures.add(new JLabel(icon));
+            textures.put(new JLabel(icon), duration);
         }
 
         return textures;

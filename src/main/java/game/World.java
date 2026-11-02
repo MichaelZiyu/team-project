@@ -1,27 +1,27 @@
 package game;
 
 import file.FileManager;
+import game.gameModel.Entity;
 import game.gameModel.Player;
 import game.gameModel.Renderable;
 import game.gameModel.Scene;
-import game.gameModel.WorldView;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public class World implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final WorldView view = new WorldView();
     private Player player;
-//    private Set<Entity> entities;
+    private Set<Entity> entities;
     List<Scene> sceneLayers;
     private String seed;
     public boolean pause = false;
 
-    //TODO these two attributes are temporary
+    //TODO temporary
     private int tickCount = 0;
-    public int time = 0;
 
     public World(String seed) {
         this.seed = seed;
@@ -34,11 +34,18 @@ public class World implements Serializable {
 
     //TODO test case
     private void sample() {
+
         this.player = new Player("samplePlayer", view);
+        this.sceneLayers = List.of(
+                new Scene(Set.of(player))
+        );
+        this.entities = Set.of(player);
     }
 
-    List<Object> render() {
-        return null;
+    Iterable<Renderable> render() {
+        return () -> sceneLayers.stream()
+                .flatMap(scene -> scene.getContent().stream())
+                .iterator();
     }
 
     public void takeCommand(String command) {
@@ -46,16 +53,28 @@ public class World implements Serializable {
             case "+esc" : {
                 this.pause = true;
             }
-            case "+w" : {
-
+            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" : {
+                CommandProcessor.handle(command);
             }
         }
+        player.handleCommand();
     }
 
     public void tick() {
         if (pause) return;
-        this.tickCount = (int) (tickCount + 1) % 36000;
-        if ((int) (tickCount % 60) == 0) this.time += 1;
+        for (Entity entity : entities) {
+            entity.tick();
+        }
+    }
+
+    public void loadTexture() {
+        for (Entity entity : entities) {
+            entity.loadTexture();
+        }
+    }
+
+    public static void main(String[] args) {
+        (new FileManager("sample")).saveWorld(new World());
     }
 
 
