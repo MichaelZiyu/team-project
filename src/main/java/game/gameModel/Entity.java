@@ -8,14 +8,13 @@ import states.EntityStateManager;
 import java.io.Serializable;
 import java.util.Set;
 
-public abstract class Entity extends PhysicsBody implements Renderable, Serializable {
+public abstract class Entity extends PhysicsBody {
     private static final long serialVersionUID = 1L;
 
     int hp, attack, maxHp, speed;
     String name;
 
-    EntityStateManager stateManager = new EntityStateManager();
-    EntityState currentState = stateManager.rest;
+    public EntityStateManager stateManager = new EntityStateManager(this);
     WorldView view;
 
     Inventory inventory;
@@ -33,31 +32,5 @@ public abstract class Entity extends PhysicsBody implements Renderable, Serializ
     }
 
     public abstract void loadTexture();
-
-    @Override
-    public int getX() {
-        return (int) this.coordinate[0];
-    }
-
-    @Override
-    public int getY() {
-        return (int) this.coordinate[1];
-    }
-
-    @Override
-    public int getWidth() {
-        return currentState.getWidth();
-    }
-
-    @Override
-    public int getHeight() {
-        return currentState.getHeight();
-    }
-
-    @Override
-    public Texture getTexture() {
-        return currentState.getTexture();
-    }
-
 
 }

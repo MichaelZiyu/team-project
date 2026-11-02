@@ -9,3 +9,11 @@ public class Main extends Test { //testpackage.Test is just a toolkit
     }
 
 }
+
+/**
+ * a list of configurable constants(updated 11/1):
+ * WindowManager.FRAME_WIDTH
+ * WindowManager.FRAME_HEIGHT
+ * GameController.FRAME_TIME
+ */
+

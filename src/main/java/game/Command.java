@@ -9,8 +9,7 @@ import java.util.List;
 public class Command {
 
     public static String translate(AWTEvent event) {
-        if (event instanceof KeyEvent) {
-            KeyEvent keyEvent = (KeyEvent) event;
+        if (event instanceof KeyEvent keyEvent) {
             String key = KeyEvent.getKeyText(keyEvent.getKeyCode()).toLowerCase();
 
             if (keyEvent.getID() == KeyEvent.KEY_PRESSED) {
@@ -20,23 +19,15 @@ public class Command {
             }
         }
 
-        else if (event instanceof MouseEvent) {
-            MouseEvent mouseEvent = (MouseEvent) event;
+        else if (event instanceof MouseEvent mouseEvent) {
             int button = mouseEvent.getButton();
             int id = mouseEvent.getID();
 
-            String key;
-            switch (button) {
-                case MouseEvent.BUTTON1:
-                    key = "left";
-                    break;
-                case MouseEvent.BUTTON3:
-                    key = "right";
-                    break;
-                default:
-                    key = null;
-                    break;
-            }
+            String key = switch (button) {
+                case MouseEvent.BUTTON1 -> "left";
+                case MouseEvent.BUTTON3 -> "right";
+                default -> null;
+            };
 
             if (key == null) return null;
 

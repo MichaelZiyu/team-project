@@ -2,7 +2,6 @@ package game.gameModel;
 
 import game.CommandProcessor;
 import game.WorldView;
-import states.EntityState;
 import testpackage.Test;
 
 import java.util.Arrays;
@@ -13,6 +12,30 @@ public class Player extends Entity {
     private static final int ATTACK = 1;
     private static final int MAX_HP = 20;
     private static final int SPEED = 120;
+    private static final double RUN_COEFFICIENT = 3;
+
+    public enum PlayerCommand {
+        // Movements
+        MOVE_FORWARD,
+        MOVE_BACKWARD,
+        MOVE_LEFT,
+        MOVE_RIGHT,
+        CANCEL_WS,
+        CANCEL_AD,
+
+        RUN,
+        CANCEL_RUN,
+
+        // Menus
+        OPEN_INVENTORY,
+        PAUSE,
+
+        // Actions
+        ATTACK,
+
+        // Other
+        INTERACT
+    }
 
 
     public Player(String name, WorldView view) {
@@ -21,28 +44,30 @@ public class Player extends Entity {
 
     @Override
     public void loadTexture() {
-        for (EntityState state : stateManager.entityStates) {
-            state.loadTexture(view + "/player");
-        }
+        stateManager.loadTexture(view + "/player");
     }
 
     public void handleCommand() {
-        char ws = CommandProcessor.currentInput[0];
-        char ad = CommandProcessor.currentInput[1];
+        PlayerCommand command;
 
-        // Here w is in negative direction of y because in jswing the y-axis is in opposite direction
-        if (ws == 'w') velocity[1] = -SPEED;
-        else if (ws == 's') velocity[1] = SPEED;
-        else velocity[1] = 0;
+        while ((command = CommandProcessor.commandQueue.poll()) != null) {
+            switch (command) {
+                case MOVE_FORWARD -> setVelocityY(SPEED);
+                case MOVE_BACKWARD -> setVelocityY(-SPEED);
+                case MOVE_LEFT -> setVelocityX(-SPEED);
+                case MOVE_RIGHT -> setVelocityX(SPEED);
+                case CANCEL_WS -> setVelocityY(0);
+                case CANCEL_AD -> setVelocityX(0);
+                case RUN -> setRunCoefficient(RUN_COEFFICIENT);
+                case CANCEL_RUN -> resetRunCoefficient();
+            }
 
-        if (ad == 'a') velocity[0] = -SPEED;
-        else if (ad == 'd') velocity[0] = SPEED;
-        else velocity[0] = 0;
+            stateManager.handleCommand(command);        }
     }
 
     public void tick() {
         super.tick();
-//        Test.print(Arrays.toString(coordinate));
+        stateManager.tick();
     }
 
 

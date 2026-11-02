@@ -7,13 +7,13 @@ import java.util.Set;
 public class Scene implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Set<Renderable> content;
+    private Iterable<? extends Renderable> content;
 
-    public Scene(Set<Renderable> content) {
+    public Scene(Iterable<? extends Renderable> content) {
         this.content = content;
     }
 
-    public Set<Renderable> getContent() {
+    public Iterable<? extends Renderable> getContent() {
         return content;
     }
 }

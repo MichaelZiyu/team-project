@@ -4,7 +4,6 @@ import file.FileManager;
 
 import game.GameController;
 import jswing.*;
-import testpackage.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class PanelStateController {
      * to return the next state.
      */
     static final Map<String, Map<String, String>> nameMap = FileManager.loadtransition();
-    static final Map<String, State> registry = new HashMap<>();
+    static final Map<String, PanelState> registry = new HashMap<>();
 
     /** current state of the game*/
     private static PanelState state = StateManager.startMenuState;
@@ -61,7 +60,7 @@ public class PanelStateController {
         PanelStateController.state = state;
     }
 
-    public static void register(String name, State state) {
+    public static void register(String name, PanelState state) {
         registry.put(name, state);
     }
 }

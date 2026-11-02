@@ -2,7 +2,6 @@ package game;
 
 import file.FileManager;
 import states.PanelStateController;
-import states.State;
 import states.StateManager;
 import system.InputBuffer;
 
@@ -39,7 +38,7 @@ public class GameController {
 
             // provide world with filtered commands from input event captured during current frame
             for (AWTEvent event : input.getInput()) {
-                String command = Command.translate(event);
+                String command = CommandProcessor.translate(event);
                 if (command != null) {
                     world.takeCommand(command);
                 }
@@ -64,7 +63,11 @@ public class GameController {
             // Execute it on the EDT to ensure thread-safe Swing component updates.
             try {
                 SwingUtilities.invokeAndWait(() -> {
-                    renderer.render(world.render());
+                    renderer.render(
+                            world.render(),
+                            (int) world.getPlayer().coordinate[0],
+                            (int) world.getPlayer().coordinate[1]
+                    );
                 });
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
