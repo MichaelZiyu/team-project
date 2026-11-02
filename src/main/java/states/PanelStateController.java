@@ -48,7 +48,7 @@ public class PanelStateController {
      *
      */
     public static void transition(String input) {
-        setState((PanelState) state.transition(input));
+        setState(state.transition(input));
         if (state.panel == null) System.exit(0);
         setWindow();
         if (state == StateManager.gameState) {
