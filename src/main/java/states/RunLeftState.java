@@ -10,8 +10,8 @@ public class RunningState extends ActionState{
     }
 
     @Override
-    public ActionState handleCommand(Player.PlayerCommand command) {
-        return null;
+    public String handleCommand(Player.PlayerCommand command) {
 
+        return "running";
     }
 }

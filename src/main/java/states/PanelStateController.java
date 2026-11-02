@@ -18,7 +18,7 @@ public class PanelStateController {
      * nameMap and registry work together to initialize all states and their transition maps
      * nameMap comes directly from transition.json, which only records the name of commands and states. Therefore
      * it requires a registration.
-     * When a State object is initialized, it will store its own nameMap and register itself to registry field below.
+     * When a PanelState object is initialized, it will store its own nameMap and register itself to registry field below.
      * So when a transition occurs, a State access its own nameMap to get the name of next state, then use registry
      * to return the next state.
      */
