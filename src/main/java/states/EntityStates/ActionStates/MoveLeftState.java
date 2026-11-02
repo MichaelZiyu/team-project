@@ -1,9 +1,9 @@
-package states;
+package states.EntityStates.ActionStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
 
-public class MoveLeftState extends ActionState{
+public class MoveLeftState extends ActionState {
 
     public MoveLeftState(Entity entity) {
         super("moveleft", entity);

@@ -1,22 +1,22 @@
-package states;
+package states.EntityStates.ActionStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
 
-public class RestState extends ActionState{
+public class RunLeftState extends ActionState {
 
-    public RestState(Entity entity) {
-        super("rest", entity);
+    public RunLeftState(Entity entity) {
+        super("runleft", entity);
     }
 
     @Override
     public String handleCommand(Player.PlayerCommand command) {
         switch (command) {
-            case Player.PlayerCommand.MOVE_LEFT -> {
+            case Player.PlayerCommand.CANCEL_RUN -> {
                 return "moveleft";
             }
             default -> {
-                return "rest";
+                return "runleft";
             }
         }
     }

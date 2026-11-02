@@ -5,6 +5,7 @@ import game.gameModel.Entity;
 import game.gameModel.Player;
 import game.gameModel.Renderable;
 import game.gameModel.Scene;
+import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -18,31 +19,30 @@ public class World implements Serializable {
     private final WorldView view = new WorldView();
     private Player player;
     private Set<Entity> entities;
-    List<Scene> sceneLayers;
+    private List<Scene> sceneLayers;
     private String seed;
     public boolean pause = false;
+    private Terrain terrain;
 
     //TODO temporary
     private int tickCount = 0;
 
     public World(String seed) {
-        this.seed = seed;
+        this.terrain = new Terrain(seed);
     }
 
     //TODO test case
-    public World() {
-        sample();
-    }
+    private static void sample() {
 
-    //TODO test case
-    private void sample() {
-
-        this.player = new Player("samplePlayer", view);
-        this.sceneLayers = List.of(
-                new Scene(List.of(player.stateManager.currentActionState)),
-                new Scene(new HashSet<>(player.stateManager.statusStates.keySet()))
+        World w = new World("seed");
+        Player player = new Player("sample", new WorldView());
+        w.sceneLayers = List.of(
+                new Scene("playerActionLayer", player.stateManager.currentActionState),
+                new Scene("playerStatusLayer", player.stateManager.currentStatusStates)
         );
-        this.entities = Set.of(player);
+        w.player = player;
+        w.entities = Set.of(player);
+        new FileManager("sample").saveWorld(w);
     }
 
     Iterable<Renderable> render() {
@@ -55,13 +55,13 @@ public class World implements Serializable {
 
     public void takeCommand(String command) {
         switch (command) {
-            case "+esc" : {
+            case "+esc" -> {
                 this.pause = true;
             }
-            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" : {
+            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" -> {
                 CommandProcessor.handleDirection(command);
             }
-            default :
+            default ->
                 CommandProcessor.handle(command);
         }
         player.handleCommand();
@@ -85,7 +85,7 @@ public class World implements Serializable {
     }
 
     public static void main(String[] args) {
-        (new FileManager("sample")).saveWorld(new World());
+        sample();
     }
 
 

@@ -56,7 +56,6 @@ public class CommandProcessor {
             if (keyMap.get(pairs.get(key)) == 1) inputs[pairId(key)] = pairs.get(key);
             else inputs[pairId(key)] = '\0';
         }
-
         if (inputs[0] == '\0') commandQueue.add(Player.PlayerCommand.CANCEL_WS);
         else commandQueue.add(commandMap.get("" + inputs[0]));
         if (inputs[1] == '\0') commandQueue.add(Player.PlayerCommand.CANCEL_AD);

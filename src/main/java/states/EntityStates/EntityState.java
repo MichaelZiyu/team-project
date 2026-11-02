@@ -1,9 +1,8 @@
-package states;
+package states.EntityStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Renderable;
 import jswing.Texture;
-import testpackage.Test;
 
 import java.io.Serializable;
 

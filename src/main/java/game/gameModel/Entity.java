@@ -1,12 +1,7 @@
 package game.gameModel;
 
 import game.WorldView;
-import jswing.Texture;
-import states.EntityState;
-import states.EntityStateManager;
-
-import java.io.Serializable;
-import java.util.Set;
+import states.EntityStates.EntityStateManager;
 
 public abstract class Entity extends PhysicsBody {
     private static final long serialVersionUID = 1L;

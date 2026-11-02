@@ -1,8 +1,12 @@
-package states;
+package states.EntityStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
-import testpackage.Test;
+import states.EntityStates.ActionStates.ActionState;
+import states.EntityStates.ActionStates.MoveLeftState;
+import states.EntityStates.ActionStates.RestState;
+import states.EntityStates.ActionStates.RunLeftState;
+import states.EntityStates.StatusStates.StatusState;
 
 import java.io.Serializable;
 import java.util.*;
@@ -10,18 +14,19 @@ import java.util.*;
 public class EntityStateManager implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public final Map<StatusState, Integer> statusStates = new HashMap<>();
+    public final Map<String, StatusState> statusStates = new HashMap<>();
+    public final Map<StatusState, Integer> statusStateCounter = new HashMap<>();
     public final Set<StatusState> currentStatusStates = new HashSet<>();
 
     public final Map<String, ActionState> actionStates = new HashMap<>();
-    public ActionState currentActionState;
+    public final List<ActionState> currentActionState = new ArrayList<>();
 
     private Entity entity;
 
     public EntityStateManager(Entity entity) {
         this.entity = entity;
         register();
-        this.currentActionState = actionStates.get("rest");
+        this.currentActionState.add(actionStates.get("rest"));
     }
 
     private void register() {
@@ -36,7 +41,7 @@ public class EntityStateManager implements Serializable {
     }
 
     public void loadTexture(String texturePath) {
-        for (StatusState state : statusStates.keySet()) {
+        for (StatusState state : statusStateCounter.keySet()) {
             state.loadTexture(texturePath);
         }
         for (ActionState state : actionStates.values()) {
@@ -46,19 +51,19 @@ public class EntityStateManager implements Serializable {
 
     public void tick() {
         int tickCount;
-        for (StatusState status : statusStates.keySet()) {
-            tickCount = statusStates.get(status) - 1;
+        for (StatusState status : statusStateCounter.keySet()) {
+            tickCount = statusStateCounter.get(status) - 1;
             if (tickCount > 0) {
-                statusStates.put(status, tickCount);
+                statusStateCounter.put(status, tickCount);
                 status.tick();
             }
             else {
-                statusStates.put(status, 0);
+                statusStateCounter.put(status, 0);
                 currentStatusStates.remove(status);
                 status.resetTickCount();
             }
         }
-        currentActionState.tick();
+        currentActionState.get(0).tick();
     }
 
     public void applyStatus() {
@@ -68,8 +73,9 @@ public class EntityStateManager implements Serializable {
     }
 
     public void handleCommand(Player.PlayerCommand command) {
-        currentActionState = actionStates.get(currentActionState.handleCommand(command));
-        Test.print(currentActionState);
+        currentActionState.set(0,
+                actionStates.get(currentActionState.get(0).handleCommand(command))
+        );
     }
 
 

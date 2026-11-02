@@ -75,7 +75,6 @@ public class GameController {
             } catch (InvocationTargetException e) {
                 throw new RuntimeException("rendering failed", e.getCause());
             }
-
         }
         PanelStateController.transition("Exit");
     }
