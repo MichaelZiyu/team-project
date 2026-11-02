@@ -7,11 +7,10 @@ import system.InputBuffer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 
 import jswing.Renderer;
-
-import testpackage.Test;
 
 public class GameController {
 
@@ -24,60 +23,71 @@ public class GameController {
     public static void initializeGame(World world, FileManager file) {
         GameController.world = world;
         world.pause = false;
+        CommandProcessor.reset();
+        world.getPlayer().handleCommand();
         world.loadTexture();
         GameController.file = file;
         GameController.renderer = new Renderer(mainPanel);
     }
 
     public static void run() {
-        InputBuffer input = new InputBuffer();
+        try (InputBuffer input = new InputBuffer()) {
+            while (!world.pause) {
 
-        while (!world.pause) {
+                long startTime = System.nanoTime();
 
-            long startTime = System.nanoTime();
-
-            // provide world with filtered commands from input event captured during current frame
-            for (AWTEvent event : input.getInput()) {
-                String command = CommandProcessor.translate(event);
-                if (command != null) {
-                    world.takeCommand(command);
+                // provide world with filtered commands from input event captured during current frame
+                for (AWTEvent event : input.getInput()) {
+                    if (event.getID() == WindowEvent.WINDOW_LOST_FOCUS) {
+                        CommandProcessor.reset();
+                        world.getPlayer().handleCommand();
+                        continue;
+                    }
+                    String command = CommandProcessor.translate(event);
+                    if (command != null) {
+                        world.takeCommand(command);
+                        if (world.pause) { break; }
+                    }
                 }
-            }
-            world.tick();
+                world.tick();
 
-            long elapsed = System.nanoTime() - startTime;
-            long remaining = (long) (FRAME_TIME * 1_000_000_000L) - elapsed;
-            if (remaining > 0) {
+                long elapsed = System.nanoTime() - startTime;
+                long remaining = (long) (FRAME_TIME * 1_000_000_000L) - elapsed;
+                if (remaining > 0) {
+                    try {
+                        Thread.sleep(
+                                remaining / 1_000_000,
+                                (int) (remaining % 1_000_000)
+                        );
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+
+                // Renderer.render() is responsible for all operations that update the main panel.
+                // Execute it on the EDT to ensure thread-safe Swing component updates.
                 try {
-                    Thread.sleep(
-                            remaining / 1_000_000,
-                            (int) (remaining % 1_000_000)
-                    );
+                    SwingUtilities.invokeAndWait(() -> {
+                        renderer.render(
+                                world.render(),
+                                (int) world.getPlayer().coordinate[0],
+                                (int) world.getPlayer().coordinate[1]
+                        );
+                    });
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException("rendering failed", e.getCause());
                 }
-            }
 
-            // Renderer.render() is responsible for all operations that update the main panel.
-            // Execute it on the EDT to ensure thread-safe Swing component updates.
-            try {
-                SwingUtilities.invokeAndWait(() -> {
-                    renderer.render(
-                            world.render(),
-                            (int) world.getPlayer().coordinate[0],
-                            (int) world.getPlayer().coordinate[1]
-                    );
-                });
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException("rendering failed", e.getCause());
             }
-
+        } finally {
+            CommandProcessor.reset();
+            world.getPlayer().handleCommand();
         }
-        PanelStateController.transition("Exit");
+        SwingUtilities.invokeLater(() -> PanelStateController.transition("Exit"));
     }
 
     public static void start() {

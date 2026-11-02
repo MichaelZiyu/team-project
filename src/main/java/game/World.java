@@ -55,20 +55,24 @@ public class World implements Serializable {
 
     public void takeCommand(String command) {
         switch (command) {
-            case "+esc" : {
+            case "+esc":
                 this.pause = true;
-            }
-            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" : {
+                CommandProcessor.reset();
+                break;
+            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" :
                 CommandProcessor.handleDirection(command);
-            }
-            default :
+                break;
+            default:
                 CommandProcessor.handle(command);
+                break;
         }
         player.handleCommand();
     }
 
     public void tick() {
         if (pause) return;
+        CommandProcessor.synchronizeRunMode();
+        player.handleCommand();
         for (Entity entity : entities) {
             entity.tick();
         }

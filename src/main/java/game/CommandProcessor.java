@@ -1,7 +1,6 @@
 package game;
 
 import game.gameModel.Player;
-import testpackage.Test;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -18,10 +17,7 @@ public class CommandProcessor {
             Map.entry("w", Player.PlayerCommand.MOVE_FORWARD),
             Map.entry("s", Player.PlayerCommand.MOVE_BACKWARD),
             Map.entry("a", Player.PlayerCommand.MOVE_LEFT),
-            Map.entry("d", Player.PlayerCommand.MOVE_RIGHT),
-
-            Map.entry("+shift", Player.PlayerCommand.RUN),
-            Map.entry("-shift", Player.PlayerCommand.CANCEL_RUN)
+            Map.entry("d", Player.PlayerCommand.MOVE_RIGHT)
     ));
 
     private static final Map<Character, Integer> keyMap = new HashMap<>(Map.of(
@@ -30,6 +26,8 @@ public class CommandProcessor {
             's', 0,
             'd', 0
     ));
+
+    private static final RunInput runInput = new RunInput();
 
     private static final char[] inputs = {'\0', '\0'};
 
@@ -64,14 +62,54 @@ public class CommandProcessor {
     }
 
     public static void handle(String command) {
+        synchronizeRunMode();
+        if ("+shift".equals(command) || "-shift".equals(command)) {
+            boolean before = runInput.isRunning();
+            if ("+shift".equals(command)) { runInput.press(); }
+            else { runInput.release(); }
+            if (before != runInput.isRunning()) {
+                commandQueue.add(runInput.isRunning()
+                        ? Player.PlayerCommand.RUN : Player.PlayerCommand.CANCEL_RUN);
+            }
+            return;
+        }
         Player.PlayerCommand c = commandMap.get(command);
         if (c != null) commandQueue.add(c);
+    }
+
+    /** Called on the game thread; a settings change starts in walking mode. */
+    public static void synchronizeRunMode() {
+        if (runInput.setMode(GameSettings.getRunMode())) {
+            commandQueue.add(Player.PlayerCommand.CANCEL_RUN);
+        }
+    }
+
+    /** Clear held/toggled inputs when loading or leaving gameplay. */
+    public static void reset() {
+        commandQueue.clear();
+        keyMap.replaceAll((key, value) -> 0);
+        inputs[0] = inputs[1] = '\0';
+        runInput.reset();
+        runInput.setMode(GameSettings.getRunMode());
+        commandQueue.add(Player.PlayerCommand.CANCEL_WS);
+        commandQueue.add(Player.PlayerCommand.CANCEL_AD);
+        commandQueue.add(Player.PlayerCommand.CANCEL_RUN);
     }
 
 
     public static String translate(AWTEvent event) {
         if (event instanceof KeyEvent keyEvent) {
-            String key = KeyEvent.getKeyText(keyEvent.getKeyCode()).toLowerCase();
+            // Stable command names regardless of OS display language.
+            String key;
+            switch (keyEvent.getKeyCode()) {
+                case KeyEvent.VK_W: key = "w"; break;
+                case KeyEvent.VK_A: key = "a"; break;
+                case KeyEvent.VK_S: key = "s"; break;
+                case KeyEvent.VK_D: key = "d"; break;
+                case KeyEvent.VK_SHIFT: key = "shift"; break;
+                case KeyEvent.VK_ESCAPE: key = "esc"; break;
+                default: return null;
+            }
 
             if (keyEvent.getID() == KeyEvent.KEY_PRESSED) {
                 return "+" + key;
