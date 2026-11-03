@@ -1,4 +1,4 @@
 package states.EntityStates.ActionStates;
 
-public class RunBackwardState {
+public class RunBackwardState{
 }

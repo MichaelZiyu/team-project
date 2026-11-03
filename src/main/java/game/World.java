@@ -24,6 +24,9 @@ public class World implements Serializable {
     public boolean pause = false;
     private Terrain terrain;
 
+    // render distance controls how many chuncks the game render dynamically
+    public static final double RENDER_DISTANCE = 16;
+
     //TODO temporary
     private int tickCount = 0;
 

@@ -15,6 +15,15 @@ public class RestState extends ActionState {
             case Player.PlayerCommand.MOVE_LEFT -> {
                 return "moveleft";
             }
+            case Player.PlayerCommand.MOVE_FORWARD -> {
+                return "moveforward";
+            }
+            case Player.PlayerCommand.MOVE_RIGHT -> {
+                return "moveright";
+            }
+            case Player.PlayerCommand.MOVE_BACKWARD -> {
+                return "movebackward";
+            }
             default -> {
                 return "rest";
             }

@@ -2,10 +2,7 @@ package states.EntityStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
-import states.EntityStates.ActionStates.ActionState;
-import states.EntityStates.ActionStates.MoveLeftState;
-import states.EntityStates.ActionStates.RestState;
-import states.EntityStates.ActionStates.RunLeftState;
+import states.EntityStates.ActionStates.*;
 import states.EntityStates.StatusStates.StatusState;
 
 import java.io.Serializable;
@@ -33,6 +30,9 @@ public class EntityStateManager implements Serializable {
         actionStates.putAll(Map.of(
                 "rest", new RestState(entity),
                 "moveleft", new MoveLeftState(entity),
+                "moveforward", new MoveForwardState(entity),
+                "moveright", new MoveRightState(entity),
+                "movebackward", new MoveBackwardState(entity),
                 "runleft", new RunLeftState(entity)
         ));
         statusStates.putAll(Map.of(
@@ -73,9 +73,9 @@ public class EntityStateManager implements Serializable {
     }
 
     public void handleCommand(Player.PlayerCommand command) {
-        currentActionState.set(0,
-                actionStates.get(currentActionState.get(0).handleCommand(command))
-        );
+        ActionState nextState = actionStates.get(currentActionState.get(0).handleCommand(command));
+        if (nextState != currentActionState.get(0)) currentActionState.get(0).resetTickCount();
+        currentActionState.set(0, nextState);
     }
 
 
