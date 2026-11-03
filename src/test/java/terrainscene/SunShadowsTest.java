@@ -1,8 +1,10 @@
 package terrainscene;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -14,8 +16,6 @@ import terrain.OverworldTerrain;
 import terrain.Terrain;
 
 class SunShadowsTest {
-
-  private static final int PER_LEVEL = SunShadows.LENGTH_PER_LEVEL_PX;
 
   /** Flat terrain at height 1 everywhere, except for heights set by the test. */
   private static final class FakeTerrain implements Terrain {
@@ -54,54 +54,72 @@ class SunShadowsTest {
 
   @Test
   void flatGroundHasNoShadows() {
-    SunShadows shadows = new SunShadows(new FakeTerrain());
-    assertEquals(0, shadows.shadowWidth(0, 0));
+    assertTrue(new SunShadows(new FakeTerrain()).shadowOn(0, 0).isEmpty());
   }
 
   @Test
-  void oneLevelStepShadesTheTileToItsLeftByOneLength() {
-    SunShadows shadows = new SunShadows(new FakeTerrain().set(1, 0, 2));
-    assertEquals(PER_LEVEL, shadows.shadowWidth(0, 0));
-    // Light comes from the right, so nothing falls on the tile to the right of the step.
-    assertEquals(0, shadows.shadowWidth(2, 0));
-    // Only the same row is shaded.
-    assertEquals(0, shadows.shadowWidth(0, 1));
+  void oneLevelStepToTheRightShadesARightBandThatSlantsSouth() {
+    // One level up: the shadow reaches 32 px left and 16 px south.
+    Area shadow = new SunShadows(new FakeTerrain().set(1, 0, 2)).shadowOn(0, 0);
+    assertTrue(shadow.contains(60, 60), "right edge, near the top, is shaded");
+    assertTrue(shadow.contains(40, 20), "inside the band, lower down, is shaded");
+    assertFalse(shadow.contains(40, 60), "the band's top-left is cut by the slant");
+    assertFalse(shadow.contains(20, 30), "left of the band is lit");
   }
 
   @Test
-  void tallCliffShadowCoversAWholeTileAndSpillsOntoTheNext() {
-    // Three levels up: a 96 px shadow covers the 64 px tile next door and 32 px of the one after.
-    SunShadows shadows = new SunShadows(new FakeTerrain().set(2, 0, 4));
-    assertEquals(64, shadows.shadowWidth(1, 0));
-    assertEquals(3 * PER_LEVEL - 64, shadows.shadowWidth(0, 0));
-    assertEquals(0, shadows.shadowWidth(-1, 0));
+  void stepShadowSpillsSouthOntoTheTileInFrontOfItsNeighbour() {
+    // The step at (1, 0) also shades the top of the tile south of (0, 0).
+    Area shadow = new SunShadows(new FakeTerrain().set(1, 0, 2)).shadowOn(0, -1);
+    assertTrue(shadow.contains(60, 56), "a thin band at the top right is shaded");
+    assertFalse(shadow.contains(60, 40), "below that band is lit");
+  }
+
+  @Test
+  void higherGroundToTheNorthShadesTheTileInFront() {
+    // Two levels up to the north: 64 px left and 32 px south.
+    Area shadow = new SunShadows(new FakeTerrain().set(0, 1, 3)).shadowOn(0, 0);
+    assertTrue(shadow.contains(10, 50), "the tile's top-left is shaded");
+    assertFalse(shadow.contains(60, 60), "the top-right corner is lit");
+    assertFalse(shadow.contains(30, 10), "the bottom is lit");
+  }
+
+  @Test
+  void lightComesFromTheRightAndNorthSoTheOtherSidesAreLit() {
+    FakeTerrain terrain = new FakeTerrain().set(0, 0, 4);
+    SunShadows shadows = new SunShadows(terrain);
+    assertTrue(shadows.shadowOn(1, 0).isEmpty(), "east of the tall tile");
+    assertTrue(shadows.shadowOn(0, 1).isEmpty(), "north of the tall tile");
+    assertFalse(shadows.shadowOn(-1, 0).isEmpty(), "west of the tall tile");
   }
 
   @Test
   void tilesAsHighAsTheCasterAreNotShaded() {
     SunShadows shadows = new SunShadows(new FakeTerrain().set(1, 0, 3).set(0, 0, 3));
-    assertEquals(0, shadows.shadowWidth(0, 0));
+    assertTrue(shadows.shadowOn(0, 0).isEmpty());
   }
 
   @Test
-  void widestShadowFromAnyCasterWins() {
-    // A small step right next door, and a tall cliff two tiles away.
-    FakeTerrain terrain = new FakeTerrain().set(1, 0, 2).set(2, 0, 6);
-    SunShadows shadows = new SunShadows(terrain);
-    assertEquals(64, shadows.shadowWidth(0, 0));
+  void tallCliffCoversTheWholeNeighbourAndReachesFurther() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(2, 0, 4));
+    Area next = shadows.shadowOn(1, 0);
+    assertTrue(next.contains(1, 10) && next.contains(63, 30), "the tile next door is shaded");
+    assertFalse(next.contains(1, 60), "its top-left is lit, because the shadow slants south");
+    assertFalse(shadows.shadowOn(0, 0).isEmpty(), "a 3-level shadow reaches two tiles over");
   }
 
   @Test
-  void realTerrainShadowsAreAlwaysValidWidths() {
+  void realTerrainShadowsStayInsideTheirTile() {
     SunShadows shadows = new SunShadows(OverworldTerrain.fromSeed(42L));
+    Rectangle2D tile = new Rectangle2D.Double(0, 0, 64, 64);
     int shaded = 0;
-    for (int blockX = -300; blockX < 300; blockX += 3) {
-      for (int blockY = -300; blockY < 300; blockY += 7) {
-        int width = shadows.shadowWidth(blockX, blockY);
-        assertTrue(width >= 0 && width <= 64, "width " + width);
-        assertEquals(0, width % SunShadows.WIDTH_GRANULARITY_PX);
-        if (width > 0) {
+    for (int blockX = -200; blockX < 200; blockX += 3) {
+      for (int blockY = -200; blockY < 200; blockY += 7) {
+        Area shadow = shadows.shadowOn(blockX, blockY);
+        if (!shadow.isEmpty()) {
           shaded++;
+          Rectangle2D bounds = shadow.getBounds2D();
+          assertTrue(tile.contains(bounds) || tile.equals(bounds), "outside tile: " + bounds);
         }
       }
     }

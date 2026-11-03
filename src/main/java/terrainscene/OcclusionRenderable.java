@@ -12,7 +12,7 @@ import terrain.TerrainCoordinates;
  * <p>It does not depend on the sun, so it shows which side is higher whatever the light. Only the
  * back, left and right edges get it; a higher tile in front would cover the front edge anyway.
  */
-public final class OcclusionRenderable implements Renderable {
+public final class OcclusionRenderable implements TerrainPiece {
 
   /** How far the gradient reaches into the tile from the wall, in pixels. */
   public static final int THICKNESS_PX = 20;
@@ -29,11 +29,13 @@ public final class OcclusionRenderable implements Renderable {
   private final int height;
   private final Edge edge;
 
-  /** Loaded from image files, so never saved; occlusion is rebuilt from the terrain instead. */
-  private final transient Texture texture;
+  private final String imageFolder;
+
+  /** Loaded from its image on first use, and never saved: pieces are rebuilt from terrain. */
+  private transient Texture texture;
 
   /**
-   * Creates the gradient for one edge of a tile and loads its image.
+   * Creates the gradient for one edge of a tile.
    *
    * @param blockX the tile's x coordinate, in blocks
    * @param blockY the tile's y coordinate, in blocks
@@ -49,7 +51,7 @@ public final class OcclusionRenderable implements Renderable {
     this.blockY = blockY;
     this.height = height;
     this.edge = edge;
-    this.texture = new Texture(TEXTURE_FOLDER + edge.name().toLowerCase(Locale.ROOT));
+    this.imageFolder = TEXTURE_FOLDER + edge.name().toLowerCase(Locale.ROOT);
   }
 
   /**
@@ -62,7 +64,16 @@ public final class OcclusionRenderable implements Renderable {
   }
 
   @Override
+  public String imageFolder() {
+    return imageFolder;
+  }
+
+  /** Returns this piece's texture, loading its image the first time it is needed. */
+  @Override
   public Texture getTexture() {
+    if (texture == null) {
+      texture = new Texture(imageFolder);
+    }
     return texture;
   }
 

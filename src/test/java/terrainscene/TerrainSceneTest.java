@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import game.gameModel.Renderable;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ class TerrainSceneTest {
     private final int value;
     private boolean topStep;
     private boolean isShadow;
+    private Area shadowShape;
     private Edge rimSide;
     private Edge occlusionEdge;
     private boolean isFaceShade;
@@ -103,10 +105,11 @@ class TerrainSceneTest {
           }
 
           @Override
-          public Renderable shadow(int blockX, int blockY, int height, int widthPx) {
+          public Renderable shadow(int blockX, int blockY, int height, Area shape) {
             piecesCreated++;
-            FakePiece shadow = new FakePiece(false, blockX, blockY, null, widthPx);
+            FakePiece shadow = new FakePiece(false, blockX, blockY, null, height);
             shadow.isShadow = true;
+            shadow.shadowShape = shape;
             return shadow;
           }
 
@@ -240,7 +243,7 @@ class TerrainSceneTest {
       FakePiece piece = all.get(i);
       if (piece.isShadow) {
         shadowCount++;
-        assertEquals(sun.shadowWidth(piece.blockX, piece.blockY), piece.value);
+        assertTrue(sun.shadowOn(piece.blockX, piece.blockY).equals(piece.shadowShape));
         int j = i + 1;
         while (all.get(j).occlusionEdge != null) {
           j++;
@@ -253,7 +256,7 @@ class TerrainSceneTest {
     }
     int expected = 0;
     for (FakePiece top : topsByPosition(scene).values()) {
-      if (sun.shadowWidth(top.blockX, top.blockY) > 0) {
+      if (!sun.shadowOn(top.blockX, top.blockY).isEmpty()) {
         expected++;
       }
     }

@@ -14,7 +14,7 @@ import terrain.TerrainCoordinates;
  * the sun, which show no face and no shadow. The line is a darker shade of the tile's own block,
  * such as dark green on grass.
  */
-public final class RimRenderable implements Renderable {
+public final class RimRenderable implements TerrainPiece {
 
   /** How thick a rim line is, in pixels. */
   public static final int THICKNESS_PX = 3;
@@ -31,11 +31,13 @@ public final class RimRenderable implements Renderable {
   private final int height;
   private final Edge side;
 
-  /** Loaded from image files, so never saved; rims are rebuilt from the terrain instead. */
-  private final transient Texture texture;
+  private final String imageFolder;
+
+  /** Loaded from its image on first use, and never saved: pieces are rebuilt from terrain. */
+  private transient Texture texture;
 
   /**
-   * Creates a rim and loads its image.
+   * Creates a rim.
    *
    * @param blockX the tile's x coordinate, in blocks
    * @param blockY the tile's y coordinate, in blocks
@@ -49,7 +51,7 @@ public final class RimRenderable implements Renderable {
     this.height = height;
     this.side = side;
     String sideFolder = side.name().toLowerCase(Locale.ROOT);
-    this.texture = new Texture(TEXTURE_FOLDER + type.getLabel() + "/" + sideFolder);
+    this.imageFolder = TEXTURE_FOLDER + type.getLabel() + "/" + sideFolder;
   }
 
   /**
@@ -62,7 +64,16 @@ public final class RimRenderable implements Renderable {
   }
 
   @Override
+  public String imageFolder() {
+    return imageFolder;
+  }
+
+  /** Returns this piece's texture, loading its image the first time it is needed. */
+  @Override
   public Texture getTexture() {
+    if (texture == null) {
+      texture = new Texture(imageFolder);
+    }
     return texture;
   }
 

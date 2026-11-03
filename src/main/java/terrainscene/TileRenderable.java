@@ -14,7 +14,7 @@ import terrain.TerrainCoordinates;
  * Raised tiles are drawn shifted up by {@link #STEP_HEIGHT_PX} per height level, which makes
  * hills look terraced from the top-down camera.
  */
-public final class TileRenderable implements Renderable {
+public final class TileRenderable implements TerrainPiece {
 
   /** How far each height level lifts a tile on screen, in pixels. */
   public static final int STEP_HEIGHT_PX = 32;
@@ -29,11 +29,13 @@ public final class TileRenderable implements Renderable {
   private final BlockType type;
   private final int height;
 
-  /** Loaded from image files, so never saved; tiles are rebuilt from the terrain instead. */
-  private final transient Texture texture;
+  private final String imageFolder;
+
+  /** Loaded from its image on first use, and never saved: pieces are rebuilt from terrain. */
+  private transient Texture texture;
 
   /**
-   * Creates a tile and loads its placeholder image.
+   * Creates a tile.
    *
    * @param blockX the tile's x coordinate, in blocks
    * @param blockY the tile's y coordinate, in blocks
@@ -45,7 +47,7 @@ public final class TileRenderable implements Renderable {
     this.blockY = blockY;
     this.type = type;
     this.height = height;
-    this.texture = new Texture(TEXTURE_FOLDER + type.getLabel());
+    this.imageFolder = TEXTURE_FOLDER + type.getLabel();
   }
 
   /**
@@ -85,7 +87,16 @@ public final class TileRenderable implements Renderable {
   }
 
   @Override
+  public String imageFolder() {
+    return imageFolder;
+  }
+
+  /** Returns this piece's texture, loading its image the first time it is needed. */
+  @Override
   public Texture getTexture() {
+    if (texture == null) {
+      texture = new Texture(imageFolder);
+    }
     return texture;
   }
 

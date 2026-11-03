@@ -5,6 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.awt.Graphics2D;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import org.junit.jupiter.api.Test;
 import terrain.BlockType;
 
@@ -59,22 +63,28 @@ class TileRenderableTest {
   }
 
   @Test
-  void shadowHugsTheRightEdgeOfItsTileTop() {
-    ShadowRenderable shadow = new ShadowRenderable(2, 3, 4, 24);
-    // The strip spans the tile's rightmost 24 px, so its centre is 12 px in from the right edge.
-    assertEquals(3 * 64 - 12, shadow.getX());
-    assertEquals(3 * 64 + 4 * STEP, shadow.getY());
-    assertEquals(24, shadow.getWidth());
+  void shadowCoversItsTileTop() {
+    ShadowRenderable shadow =
+        new ShadowRenderable(2, 3, 4, new Area(new Rectangle2D.Double(40, 0, 24, 64)));
+    TileRenderable tile = new TileRenderable(2, 3, BlockType.GRASS, 4);
+    assertEquals(tile.getX(), shadow.getX());
+    assertEquals(tile.getY(), shadow.getY());
+    assertEquals(64, shadow.getWidth());
     assertEquals(64, shadow.getHeight());
   }
 
   @Test
-  void everyShadowWidthHasAnImage() {
-    for (int width = 8; width <= 64; width += 8) {
-      ShadowRenderable shadow = new ShadowRenderable(0, 0, 1, width);
-      assertEquals(width, shadow.getTexture().getWidth());
-      assertEquals(64, shadow.getTexture().getHeight());
-    }
+  void shadowImageIsDarkOnlyInsideItsShape() {
+    // A band along the tile's top (y up), which is the top rows of the image (y down).
+    ShadowRenderable shadow =
+        new ShadowRenderable(0, 0, 1, new Area(new Rectangle2D.Double(0, 48, 64, 16)));
+    BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = image.createGraphics();
+    shadow.paintOnto(g, 0, 0, null);
+    g.dispose();
+    assertEquals(ShadowRenderable.SHADOW_COLOUR.getAlpha(), image.getRGB(10, 5) >>> 24);
+    assertEquals(0, image.getRGB(10, 40) >>> 24);
+    assertEquals(64, shadow.getTexture().getWidth());
   }
 
   @Test

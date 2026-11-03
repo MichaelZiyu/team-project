@@ -12,7 +12,7 @@ import terrain.TerrainCoordinates;
  * level, stacked, so cliffs look as tall as they are. The top step uses an image chosen by the
  * tile's block type, such as a grassy lip under grass; the steps below it are plain.
  */
-public final class FaceRenderable implements Renderable {
+public final class FaceRenderable implements TerrainPiece {
 
   private static final long serialVersionUID = 1L;
 
@@ -27,11 +27,13 @@ public final class FaceRenderable implements Renderable {
   private final int level;
   private final boolean topStep;
 
-  /** Loaded from image files, so never saved; faces are rebuilt from the terrain instead. */
-  private final transient Texture texture;
+  private final String imageFolder;
+
+  /** Loaded from its image on first use, and never saved: pieces are rebuilt from terrain. */
+  private transient Texture texture;
 
   /**
-   * Creates one face step and loads its image.
+   * Creates one face step.
    *
    * @param blockX the x coordinate of the tile this face belongs to, in blocks
    * @param blockY the y coordinate of the tile this face belongs to, in blocks
@@ -44,8 +46,7 @@ public final class FaceRenderable implements Renderable {
     this.blockY = blockY;
     this.level = level;
     this.topStep = topStep;
-    String folder = topStep ? TOP_STEP_TEXTURE_FOLDER + tileType.getLabel() : TEXTURE_FOLDER;
-    this.texture = new Texture(folder);
+    this.imageFolder = topStep ? TOP_STEP_TEXTURE_FOLDER + tileType.getLabel() : TEXTURE_FOLDER;
   }
 
   /**
@@ -67,7 +68,16 @@ public final class FaceRenderable implements Renderable {
   }
 
   @Override
+  public String imageFolder() {
+    return imageFolder;
+  }
+
+  /** Returns this piece's texture, loading its image the first time it is needed. */
+  @Override
   public Texture getTexture() {
+    if (texture == null) {
+      texture = new Texture(imageFolder);
+    }
     return texture;
   }
 

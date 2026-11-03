@@ -12,7 +12,7 @@ import terrain.TerrainCoordinates;
  * placeholder images and with real textures. The darkness (25%) lives in its image, {@code
  * terrain/faceshade/000-1.png}.
  */
-public final class FaceShadeRenderable implements Renderable {
+public final class FaceShadeRenderable implements TerrainPiece {
 
   private static final long serialVersionUID = 1L;
 
@@ -23,11 +23,13 @@ public final class FaceShadeRenderable implements Renderable {
   private final int blockY;
   private final int level;
 
-  /** Loaded from image files, so never saved; overlays are rebuilt from the terrain instead. */
-  private final transient Texture texture;
+  private final String imageFolder;
+
+  /** Loaded from its image on first use, and never saved: pieces are rebuilt from terrain. */
+  private transient Texture texture;
 
   /**
-   * Creates the overlay for one face step and loads its image.
+   * Creates the overlay for one face step.
    *
    * @param blockX the x coordinate of the tile the face belongs to, in blocks
    * @param blockY the y coordinate of the tile the face belongs to, in blocks
@@ -37,11 +39,20 @@ public final class FaceShadeRenderable implements Renderable {
     this.blockX = blockX;
     this.blockY = blockY;
     this.level = level;
-    this.texture = new Texture(TEXTURE_FOLDER);
+    this.imageFolder = TEXTURE_FOLDER;
   }
 
   @Override
+  public String imageFolder() {
+    return imageFolder;
+  }
+
+  /** Returns this piece's texture, loading its image the first time it is needed. */
+  @Override
   public Texture getTexture() {
+    if (texture == null) {
+      texture = new Texture(imageFolder);
+    }
     return texture;
   }
 
