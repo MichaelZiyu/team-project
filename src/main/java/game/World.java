@@ -13,28 +13,51 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
+/**
+ * Represents the internal states of the game
+ */
 public class World implements Serializable {
     private static final long serialVersionUID = 1L;
 
+
+    // view saves the type of view the game is currently in
     private final WorldView view = new WorldView();
+
     private Player player;
     private Set<Entity> entities;
+
+    /**
+     * sceneLayers is a list of ordered Scenes for the game to render. Each Scene object stores
+     * an Iterable of Renderables.
+     *
+     * sceneLayers consists of several fixed layers:
+     * - 1. Background
+     * - 2. ground, including blocks, interactable blocks(e.g. cave)
+     * - 3. physicsbody of all entities
+     * - 4. action state texture of all entities(e.g. walking, attacking)
+     * - 5. status state texture of all entities(e.g. stunning, freeze)
+     * - 6. entity stats(e.g. player stats, mob hp)
+     * - 7. weather effects and sunlight
+     *
+     * The scenes rendered earlier will be behind the scenes rendered after.
+     */
     private List<Scene> sceneLayers;
-    private String seed;
+
+    // GameController will check if this is true in each loop, and stop the loop if paused.
     public boolean pause = false;
+
+    // Terrain object generates the blocks on the ground through a String seed
     private Terrain terrain;
 
     // render distance controls how many chuncks the game render dynamically
     public static final double RENDER_DISTANCE = 16;
 
-    //TODO temporary
-    private int tickCount = 0;
-
     public World(String seed) {
         this.terrain = new Terrain(seed);
     }
 
-    //TODO test case
+    // TEMP: test sample
+    // save a sample world file
     private static void sample() {
 
         World w = new World("seed");
@@ -48,6 +71,12 @@ public class World implements Serializable {
         new FileManager("sample").saveWorld(w);
     }
 
+    /**
+     * Provide Iterable<Renderable> generated through scene.getContent for Renderer to render in O(1)
+     *
+     * @return Iterable<Renderable> contents in scenes stored in sceneLayers
+     *
+     */
     Iterable<Renderable> render() {
         return () -> StreamSupport.stream(sceneLayers.spliterator(), false)
                 .flatMap(scene -> StreamSupport.stream(
@@ -56,6 +85,11 @@ public class World implements Serializable {
                 .iterator();
     }
 
+    /**
+     * Handle all the command and determine where to put the command
+     *
+     * @param command a String command filtered by CommandProcessor
+     */
     public void takeCommand(String command) {
         switch (command) {
             case "+esc" -> {
@@ -70,6 +104,9 @@ public class World implements Serializable {
         player.handleCommand();
     }
 
+    /**
+     * Make the game move to the next moment
+     */
     public void tick() {
         if (pause) return;
         for (Entity entity : entities) {
@@ -87,6 +124,7 @@ public class World implements Serializable {
         return player;
     }
 
+    // TEMP: test
     public static void main(String[] args) {
         sample();
     }

@@ -3,6 +3,9 @@ package game.gameModel;
 import game.WorldView;
 import states.EntityStates.EntityStateManager;
 
+/**
+ * Anything
+ */
 public abstract class Entity extends PhysicsBody {
     private static final long serialVersionUID = 1L;
 

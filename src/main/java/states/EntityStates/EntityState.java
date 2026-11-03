@@ -28,9 +28,8 @@ public class EntityState implements Renderable, Serializable {
     public void tick() {
         int amount = tickCount - 1;
         if (amount > 0) this.tickCount = amount;
-        else {
-            this.tickCount = 0;
-        }
+        else this.tickCount = 0;
+
         texture.tick();
     }
 

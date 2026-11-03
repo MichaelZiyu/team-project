@@ -2,6 +2,9 @@ package game;
 
 import java.io.Serializable;
 
+/**
+ * Represent the type of view the game is currently in
+ */
 public class WorldView implements Serializable {
     private static final long serialVersionUID = 1L;
 
