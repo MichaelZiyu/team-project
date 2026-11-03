@@ -46,6 +46,12 @@ public final class PerlinNoise {
   /** How much finer each successive octave is in {@link #fractal}. */
   private static final double LACUNARITY = 2.0;
 
+  /**
+   * How far each octave is shifted in {@link #fractal}. Not a whole number, so no octave samples
+   * a grid corner at the origin, where noise is always exactly 0.
+   */
+  private static final double OCTAVE_OFFSET = 0.6180339887;
+
   private final long seed;
 
   /**
@@ -107,8 +113,9 @@ public final class PerlinNoise {
     double frequency = 1;
     double maxTotal = 0;
     for (int i = 0; i < octaves; i++) {
-      // Shift each octave by its index so layers don't share grid corners at the origin.
-      total += noise(x * frequency + i, y * frequency + i) * amplitude;
+      // Shift each octave differently so layers don't line up, and none hits a corner at (0, 0).
+      double shift = (i + 1) * OCTAVE_OFFSET;
+      total += noise(x * frequency + shift, y * frequency + shift) * amplitude;
       maxTotal += amplitude;
       amplitude *= PERSISTENCE;
       frequency *= LACUNARITY;

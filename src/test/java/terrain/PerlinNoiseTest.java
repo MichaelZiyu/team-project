@@ -83,6 +83,18 @@ class PerlinNoiseTest {
   }
 
   @Test
+  void fractalAtOriginDependsOnSeed() {
+    // Plain noise is always 0 at grid corners, but layered noise must not be stuck there.
+    int nonZero = 0;
+    for (long seed = 0; seed < 20; seed++) {
+      if (Math.abs(new PerlinNoise(seed).fractal(0, 0, 4)) > 1e-6) {
+        nonZero++;
+      }
+    }
+    assertEquals(20, nonZero);
+  }
+
+  @Test
   void fractalRejectsFewerThanOneOctave() {
     PerlinNoise noise = new PerlinNoise(SEED);
     assertThrows(IllegalArgumentException.class, () -> noise.fractal(0, 0, 0));
