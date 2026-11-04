@@ -36,13 +36,15 @@ public class World implements Serializable {
      * an Iterable of Renderables.
      *
      * sceneLayers consists of several fixed layers:
-     * - 1. Background
-     * - 2. ground, including blocks, interactable blocks(e.g. cave)
-     * - 3. physicsbody of all entities
-     * - 4. action state texture of all entities(e.g. walking, attacking)
-     * - 5. status state texture of all entities(e.g. stunning, freeze)
-     * - 6. entity stats(e.g. player stats, mob hp)
-     * - 7. weather effects and sunlight
+     * - Background
+     * - ground, including blocks, interactable blocks(e.g. cave)
+     * - interactable items
+     * - physicsbody of all entities
+     * - action state texture of all entities(e.g. walking, attacking)
+     * - status state texture of all entities(e.g. stunning, freeze)
+     * - entity stats(e.g. player stats, mob hp)
+     * - weather effects and sunlight
+     * - game ui panels
      *
      * The scenes rendered earlier will be behind the scenes rendered after.
      */
