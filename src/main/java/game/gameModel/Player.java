@@ -47,6 +47,7 @@ public class Player extends Entity {
         stateManager.loadTexture(view + "/player");
     }
 
+    @Override
     public void handleCommand() {
         PlayerCommand command;
 

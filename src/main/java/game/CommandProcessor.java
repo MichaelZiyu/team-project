@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+// TODO: YueHeng:
+// CommandProcessor should have a public final Map<Entity, Queue> attributeName that maps every entity in World
 public class CommandProcessor {
 
     public static final Queue<Player.PlayerCommand> commandQueue = new ConcurrentLinkedQueue<>();
