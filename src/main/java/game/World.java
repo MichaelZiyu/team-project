@@ -46,7 +46,7 @@ public class World implements Serializable {
      *
      * The scenes rendered earlier will be behind the scenes rendered after.
      */
-    private List<Scene> sceneLayers;
+    public List<Scene> sceneLayers;
 
     // GameController will check if this is true in each loop, and stop the loop if paused.
     public boolean pause = false;
