@@ -5,10 +5,9 @@ import game.gameModel.Entity;
 import game.gameModel.Player;
 import game.gameModel.Renderable;
 import game.gameModel.Scene;
-import testpackage.Test;
+import terrainscene.ChunkedTerrainScene;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -22,6 +21,12 @@ public class World implements Serializable {
 
     // view saves the type of view the game is currently in
     private final WorldView view = new WorldView();
+
+    // rendering distance for terrain chunks.
+    // TODO: this is a configurable constant and should show up in setting menu
+    private static int TERRAIN_RENDER_DISTANCE = ChunkedTerrainScene.DEFAULT_RENDER_DISTANCE;
+
+
 
     private Player player;
     private Set<Entity> entities;
@@ -90,7 +95,7 @@ public class World implements Serializable {
      *
      * @param command a String command filtered by CommandProcessor
      */
-    public void takeCommand(String command) {
+    public void handleCommand(String command) {
         switch (command) {
             case "+esc" -> {
                 this.pause = true;
@@ -101,7 +106,9 @@ public class World implements Serializable {
             default ->
                 CommandProcessor.handle(command);
         }
-        player.handleCommand();
+        for (Entity entity : entities) {
+            entity.handleCommand();
+        }
     }
 
     /**

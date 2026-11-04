@@ -31,4 +31,6 @@ public abstract class Entity extends PhysicsBody {
 
     public abstract void loadTexture();
 
+    public abstract void handleCommand();
+
 }

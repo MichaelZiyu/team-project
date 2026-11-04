@@ -11,8 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import jswing.Renderer;
 
-import testpackage.Test;
-
 public class GameController {
 
     private static World world;
@@ -40,7 +38,7 @@ public class GameController {
             for (AWTEvent event : input.getInput()) {
                 String command = CommandProcessor.translate(event);
                 if (command != null) {
-                    world.takeCommand(command);
+                    world.handleCommand(command);
                 }
             }
             world.tick();
