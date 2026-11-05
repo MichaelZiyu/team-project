@@ -240,6 +240,39 @@ class ChunkedTerrainSceneTest {
   @Test
   void negativeRenderDistanceIsRejected() {
     assertThrows(IllegalArgumentException.class, () -> instantScene(-1));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ChunkedTerrainScene(42L, VIEW_WIDTH, VIEW_HEIGHT, -1));
+  }
+
+  @Test
+  void sceneMadeFromASeedPaintsTheChunksAroundThePlayer() throws InterruptedException {
+    ChunkedTerrainScene scene = new ChunkedTerrainScene(42L, VIEW_WIDTH, VIEW_HEIGHT, 0);
+    int expected = expectedChunks(0, 0, 0);
+    long deadline = System.currentTimeMillis() + 20_000;
+    scene.update(0, 0);
+    while (scene.displayedCount() < expected && System.currentTimeMillis() < deadline) {
+      Thread.sleep(20);
+      scene.update(0, 0);
+    }
+    assertEquals(expected, scene.displayedCount());
+  }
+
+  @Test
+  void sameSeedPaintsTheSameChunkAsTheSameTerrain() {
+    ChunkPainter fromSeed =
+        new ChunkPainter(terrain.OverworldTerrain.fromSeed(7L), new TerrainImages());
+    ChunkPainter again =
+        new ChunkPainter(terrain.OverworldTerrain.fromSeed(7L), new TerrainImages());
+    BufferedImage first = fromSeed.paint(1, -2, ShadowCast.DEFAULT).image();
+    BufferedImage second = again.paint(1, -2, ShadowCast.DEFAULT).image();
+    assertEquals(first.getWidth(), second.getWidth());
+    assertEquals(first.getHeight(), second.getHeight());
+    for (int x = 0; x < first.getWidth(); x += 7) {
+      for (int y = 0; y < first.getHeight(); y += 7) {
+        assertEquals(first.getRGB(x, y), second.getRGB(x, y));
+      }
+    }
   }
 
   @Test

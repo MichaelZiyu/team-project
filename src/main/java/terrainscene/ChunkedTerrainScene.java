@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import terrain.OverworldTerrain;
 import terrain.Terrain;
 import terrain.TerrainCoordinates;
 
@@ -133,27 +134,26 @@ public final class ChunkedTerrainScene implements Iterable<Renderable> {
   private List<Renderable> drawOrder = List.of();
 
   /**
-   * Creates a scene that paints the given terrain's chunks on its own background threads.
+   * Creates a scene showing the overworld generated from a seed, painting its chunks on its own
+   * background threads.
    *
-   * @param terrain the terrain to show
+   * <p>The scene makes its own terrain from the seed. If other code (such as collision) also
+   * needs the terrain, make one with {@link OverworldTerrain#fromSeed} and pass it to {@link
+   * #create} instead, so both share it.
+   *
+   * @param seed the world seed; the same seed always shows the same world
    * @param viewWidthPx the screen width, in pixels
    * @param viewHeightPx the screen height, in pixels
    * @param renderDistance how many chunks to prepare beyond each screen edge; at least 0
-   * @return the scene
    * @throws IllegalArgumentException if {@code renderDistance} is negative
    */
-  public static ChunkedTerrainScene create(
-      Terrain terrain, int viewWidthPx, int viewHeightPx, int renderDistance) {
-    Executor background =
-        Executors.newFixedThreadPool(
-            PAINT_THREADS,
-            task -> {
-              Thread thread = new Thread(task, "terrain-chunks");
-              thread.setDaemon(true);
-              return thread;
-            });
-    ChunkSource painter = new ChunkPainter(terrain, new TerrainImages());
-    return new ChunkedTerrainScene(painter, background, viewWidthPx, viewHeightPx, renderDistance);
+  public ChunkedTerrainScene(long seed, int viewWidthPx, int viewHeightPx, int renderDistance) {
+    this(
+        new ChunkPainter(OverworldTerrain.fromSeed(seed), new TerrainImages()),
+        newPaintingThreads(),
+        viewWidthPx,
+        viewHeightPx,
+        renderDistance);
   }
 
   /**
@@ -180,6 +180,34 @@ public final class ChunkedTerrainScene implements Iterable<Renderable> {
     this.viewWidthPx = viewWidthPx;
     this.viewHeightPx = viewHeightPx;
     this.renderDistance = renderDistance;
+  }
+
+  /**
+   * Creates a scene that paints the given terrain's chunks on its own background threads.
+   *
+   * @param terrain the terrain to show
+   * @param viewWidthPx the screen width, in pixels
+   * @param viewHeightPx the screen height, in pixels
+   * @param renderDistance how many chunks to prepare beyond each screen edge; at least 0
+   * @return the scene
+   * @throws IllegalArgumentException if {@code renderDistance} is negative
+   */
+  public static ChunkedTerrainScene create(
+      Terrain terrain, int viewWidthPx, int viewHeightPx, int renderDistance) {
+    ChunkSource painter = new ChunkPainter(terrain, new TerrainImages());
+    return new ChunkedTerrainScene(
+        painter, newPaintingThreads(), viewWidthPx, viewHeightPx, renderDistance);
+  }
+
+  /** Returns {@link #PAINT_THREADS} daemon threads for painting chunks in the background. */
+  private static Executor newPaintingThreads() {
+    return Executors.newFixedThreadPool(
+        PAINT_THREADS,
+        task -> {
+          Thread thread = new Thread(task, "terrain-chunks");
+          thread.setDaemon(true);
+          return thread;
+        });
   }
 
   /**
