@@ -7,12 +7,13 @@ import terrain.BlockType;
 import terrain.TerrainCoordinates;
 
 /**
- * A dark line traced along one edge of a tile's top, where the neighbouring tile on that side is
- * lower.
+ * A line traced along one edge of a tile's top, where the neighbouring tile on that side is lower.
  *
  * <p>Rims make every drop-off visible, including edges that face away from the camera or toward
- * the sun, which show no face and no shadow. The line is a darker shade of the tile's own block,
- * such as dark green on grass.
+ * the sun, which show no face and no shadow. Edges facing the sun (back and right) catch its
+ * light, so their rim is a bright, warm shade of the tile's own block, such as light green on
+ * grass; the other edges (front and left) get a darker shade, such as dark green. Together they
+ * make each terrace step look bevelled.
  */
 public final class RimRenderable implements TerrainPiece {
 
