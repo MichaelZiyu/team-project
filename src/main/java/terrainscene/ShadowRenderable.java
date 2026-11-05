@@ -23,8 +23,12 @@ import terrain.TerrainCoordinates;
  */
 public final class ShadowRenderable implements TerrainPiece {
 
-  /** The colour where the shadow is darkest: a deep blue at about 40% opacity. */
-  static final Color SHADOW_COLOUR = new Color(24, 32, 96, 104);
+  /**
+   * The colour of a shadow in full daylight: a deep blue at about 40% opacity. Other shadows
+   * (characters, items) can use it to match the terrain's, scaling its opacity by {@link
+   * daynight.Sun#daylight()} so they fade at dawn and dusk like the terrain's do.
+   */
+  public static final Color SHADOW_COLOUR = new Color(24, 32, 96, 104);
 
   private static final long serialVersionUID = 1L;
 

@@ -8,7 +8,8 @@ import daynight.SunPosition;
  *
  * <p>Shadows point away from the sun. The higher the sun, the shorter they are; near the horizon
  * they would grow without limit, so their length is capped at {@link #MAX_LENGTH_PER_LEVEL_PX},
- * and by then they have faded out anyway because sunlight is weak.
+ * and by then they have faded out anyway because sunlight is weak. The direction and length come
+ * from {@link SunPosition}, so terrain shadows match every other shadow in the game.
  *
  * @param dxPerLevel how far east one level of height throws its shadow, in pixels (negative is
  *     west)
@@ -19,7 +20,8 @@ import daynight.SunPosition;
 public record ShadowCast(double dxPerLevel, double dyPerLevel, double strength) {
 
   /** The longest a shadow can be per level of height, in pixels: three terrace steps. */
-  public static final double MAX_LENGTH_PER_LEVEL_PX = 3.0 * TileRenderable.STEP_HEIGHT_PX;
+  public static final double MAX_LENGTH_PER_LEVEL_PX =
+      SunPosition.MAX_SHADOW_LENGTH_RATIO * TileRenderable.STEP_HEIGHT_PX;
 
   /**
    * The lighting used when no time of day is given: a mid-morning sun to the right and a little
@@ -49,10 +51,8 @@ public record ShadowCast(double dxPerLevel, double dyPerLevel, double strength) 
     if (strength <= 0) {
       return NIGHT;
     }
-    double length =
-        Math.min(
-            MAX_LENGTH_PER_LEVEL_PX, TileRenderable.STEP_HEIGHT_PX / Math.tan(sun.elevation()));
-    return new ShadowCast(-sun.towardSunX() * length, -sun.towardSunY() * length, strength);
+    int step = TileRenderable.STEP_HEIGHT_PX;
+    return new ShadowCast(sun.shadowX(step), sun.shadowY(step), strength);
   }
 
   /**

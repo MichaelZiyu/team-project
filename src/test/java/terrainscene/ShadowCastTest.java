@@ -37,6 +37,17 @@ class ShadowCastTest {
   }
 
   @Test
+  void terrainShadowsMatchTheSunsShadowForOneStep() {
+    for (double time = 0.26; time < 0.75; time += 0.05) {
+      SunPosition sun = SunPosition.at(time);
+      ShadowCast cast = ShadowCast.from(sun);
+      assertEquals(sun.shadowX(TileRenderable.STEP_HEIGHT_PX), cast.dxPerLevel(), 1e-9);
+      assertEquals(sun.shadowY(TileRenderable.STEP_HEIGHT_PX), cast.dyPerLevel(), 1e-9);
+      assertEquals(sun.daylight(), cast.strength(), 1e-9);
+    }
+  }
+
+  @Test
   void nightHasNoSunlight() {
     assertEquals(ShadowCast.NIGHT, ShadowCast.from(SunPosition.at(0)));
     assertFalse(ShadowCast.NIGHT.isDaylight());
