@@ -8,7 +8,6 @@ import game.gameModel.Player;
 import game.gameModel.Renderable;
 import game.gameModel.Scene;
 import jswing.WindowManager;
-import terrain.OverworldTerrain;
 import terrainscene.ChunkedTerrainScene;
 import terrainscene.SkyTintLayer;
 
@@ -92,8 +91,8 @@ public class World implements Serializable {
     /** Creates the terrain layer on first use (also after loading a save) and centres it on the player. */
     private void updateTerrainLayer() {
         if (terrainScene == null) {
-            terrainScene = ChunkedTerrainScene.create(
-                    OverworldTerrain.fromSeed(TERRAIN_SEED),
+            terrainScene = new ChunkedTerrainScene(
+                    TERRAIN_SEED,
                     WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT,
                     TERRAIN_RENDER_DISTANCE);
             terrainLayer = new Scene(terrainScene);
