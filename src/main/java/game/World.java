@@ -54,13 +54,28 @@ public class World implements Serializable {
     public boolean pause = false;
 
     // Terrain object generates the blocks on the ground through a String seed
-    private Terrain terrain;
+    // also includes interactable blocks like caves
+    // GameMap is an Iterable<Renderable>
+    private GameMap map;
 
     // render distance controls how many chuncks the game render dynamically
     public static final double RENDER_DISTANCE = 16;
 
     public World(String seed) {
-        this.terrain = new Terrain(seed);
+        this.map = new GameMap(seed);
+        this.player = new Player("playername", view);
+        this.entities.add(player);
+        this.sceneLayers = List.of(
+                new Scene("Background"),
+                new Scene("ground", map),
+                new Scene("interactable items"),
+                new Scene("physicsbody"),
+                new Scene("actionStates"),
+                new Scene("statusStates"),
+                new Scene("entityStats"),
+                new Scene("filters"),
+                new Scene("gameUI")
+        );
     }
 
     // TEMP: test sample
@@ -102,8 +117,14 @@ public class World implements Serializable {
             case "+esc" -> {
                 this.pause = true;
             }
-            case "+w", "-w", "+a", "-a", "+s", "-s", "+d", "-d" -> {
-                CommandProcessor.handleDirection(command);
+            case "+e" -> {
+
+            }
+            case "right" -> {
+                //
+            }
+            case "+f" -> {
+                // interact
             }
             default ->
                 CommandProcessor.handle(command);
