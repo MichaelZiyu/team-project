@@ -68,15 +68,14 @@ public class World implements Serializable {
         this.map = new GameMap(seed, player);
         this.entities.add(player);
         this.sceneLayers = List.of(
-                new Scene("Background"),
-                new Scene("ground", map),
-                new Scene("interactable items"),
-                new Scene("physicsbody"),
-                new Scene("actionStates"),
-                new Scene("statusStates"),
-                new Scene("entityStats"),
-                new Scene("filters"),
-                new Scene("gameUI")
+                new Scene("Background"), // background picture
+                new Scene("terrain", map), // terrain map
+                new Scene("interactable"), // cave
+                new Scene("physicsbody"), // collision box
+                new Scene("entities"), // characters, status effect
+                new Scene("entityStats"), // hp
+                new Scene("filters"), // such as weather, sunlight
+                new Scene("gameUI") // pause menu
         );
     }
 
