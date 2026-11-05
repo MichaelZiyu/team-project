@@ -17,3 +17,5 @@ public class Main extends Test { //testpackage.Test is just a toolkit
  * GameController.FRAME_TIME
  */
 
+//TODO: make PhysicsBody, Entity and StateManager renderable.
+

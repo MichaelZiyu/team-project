@@ -66,7 +66,10 @@ public class EntityStateManager implements Serializable {
         currentActionState.get(0).tick();
     }
 
-    public void applyStatus() {
+    public void apply() {
+//        for (ActionState state : currentActionStates) {
+//            state.apply();
+//        }
         for (StatusState status : currentStatusStates) {
             status.apply();
         }
