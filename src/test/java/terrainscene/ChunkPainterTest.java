@@ -20,7 +20,7 @@ class ChunkPainterTest {
 
   @Test
   void chunkImageIsTallEnoughForItsHighestTile() {
-    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(-2, 3);
+    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(-2, 3, ShadowCast.DEFAULT);
     int maxHeight = 0;
     for (int x = -32; x < -16; x++) {
       for (int y = 48; y < 64; y++) {
@@ -54,8 +54,35 @@ class ChunkPainterTest {
   }
 
   @Test
+  void chunkImagesMatchPiecesAtOtherTimesOfDay() {
+    // Evening (shadows to the right, left rims lit) and late afternoon at half strength.
+    ShadowCast[] suns = {
+      ShadowCast.from(daynight.SunPosition.at(0.68)),
+      new ShadowCast(24, -10, 0.5),
+      ShadowCast.NIGHT
+    };
+    for (ShadowCast sun : suns) {
+      TerrainScene pieces = piecesScene();
+      pieces.update(-46_800, 26_100, sun);
+      ChunkedTerrainScene chunks = chunkScene();
+      chunks.update(-46_800, 26_100, sun);
+      BufferedImage expected = draw(pieces, -46_800, 26_100);
+      BufferedImage actual = draw(chunks, -46_800, 26_100);
+      int different = 0;
+      for (int x = 0; x < VIEW_WIDTH; x++) {
+        for (int y = 0; y < VIEW_HEIGHT; y++) {
+          if (!sameColour(expected.getRGB(x, y), actual.getRGB(x, y))) {
+            different++;
+          }
+        }
+      }
+      assertEquals(0, different, "pixels differ for " + sun);
+    }
+  }
+
+  @Test
   void raisedTilesLeaveTransparentSpaceAboveLowerOnes() {
-    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(0, 0);
+    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(0, 0, ShadowCast.DEFAULT);
     BufferedImage image = chunk.image();
     int transparent = 0;
     for (int x = 0; x < image.getWidth(); x += 4) {
@@ -84,6 +111,11 @@ class ChunkPainterTest {
     } else if (scene instanceof ChunkedTerrainScene chunks) {
       chunks.update(playerX, playerY);
     }
+    return draw(scene, playerX, playerY);
+  }
+
+  /** Draws an already updated scene through the game's real renderer into an image. */
+  private static BufferedImage draw(Iterable<Renderable> scene, double playerX, double playerY) {
     JPanel panel = new JPanel();
     panel.setLayout(null);
     panel.setSize(VIEW_WIDTH, VIEW_HEIGHT);

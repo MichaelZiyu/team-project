@@ -1,11 +1,13 @@
 package terrainscene;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import terrain.Biome;
@@ -106,6 +108,60 @@ class SunShadowsTest {
     assertTrue(next.contains(1, 10) && next.contains(63, 30), "the tile next door is shaded");
     assertFalse(next.contains(1, 60), "its top-left is lit, because the shadow slants south");
     assertFalse(shadows.shadowOn(0, 0).isEmpty(), "a 3-level shadow reaches two tiles over");
+  }
+
+  @Test
+  void softShadowStartsWithTheMainShadowAndFadesFurtherFromTheWall() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(2, 0, 4));
+    List<Area> layers = shadows.softShadowOn(1, 0);
+    assertEquals(9, layers.size());
+    assertTrue(layers.get(0).equals(shadows.shadowOn(1, 0)));
+    // Near the wall every sun position agrees; at the far tip only some of them reach.
+    int nearWall = 0;
+    int farTip = 0;
+    for (Area layer : layers) {
+      nearWall += layer.contains(60, 30) ? 1 : 0;
+      farTip += layer.contains(2, 30) ? 1 : 0;
+    }
+    assertEquals(9, nearWall);
+    assertTrue(farTip > 0 && farTip < 9, "the far edge is soft: " + farTip + " of 9");
+  }
+
+  @Test
+  void flatGroundHasNoSoftShadowEither() {
+    SunShadows shadows = new SunShadows(new FakeTerrain());
+    for (Area layer : shadows.softShadowOn(0, 0)) {
+      assertTrue(layer.isEmpty());
+    }
+  }
+
+  @Test
+  void eveningShadowsFallToTheRight() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(0, 0, 3));
+    ShadowCast evening = ShadowCast.from(daynight.SunPosition.at(0.7));
+    assertFalse(shadows.shadowOn(1, 0, evening).isEmpty(), "the tile to the east is shaded");
+    assertTrue(shadows.shadowOn(-1, 0, evening).isEmpty(), "the tile to the west is lit");
+    ShadowCast morning = ShadowCast.from(daynight.SunPosition.at(0.3));
+    assertTrue(shadows.shadowOn(1, 0, morning).isEmpty());
+    assertFalse(shadows.shadowOn(-1, 0, morning).isEmpty());
+  }
+
+  @Test
+  void noonShadowsFallStraightSouth() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(0, 1, 3));
+    ShadowCast noon = ShadowCast.from(daynight.SunPosition.at(0.5));
+    Area below = shadows.shadowOn(0, 0, noon);
+    assertTrue(below.contains(32, 60), "just south of the wall is shaded");
+    assertTrue(shadows.shadowOn(1, 0, noon).isEmpty(), "nothing falls sideways at noon");
+  }
+
+  @Test
+  void nothingIsShadedAtNight() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(1, 0, 5));
+    assertTrue(shadows.shadowOn(0, 0, ShadowCast.NIGHT).isEmpty());
+    for (Area layer : shadows.softShadowOn(0, 0, ShadowCast.NIGHT)) {
+      assertTrue(layer.isEmpty());
+    }
   }
 
   @Test

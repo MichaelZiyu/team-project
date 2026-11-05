@@ -8,13 +8,14 @@ import terrain.Terrain;
 import terrain.TerrainCoordinates;
 
 /**
- * Paints a whole chunk of terrain (tiles, faces, rims, shadows and occlusion) into one image.
+ * Paints a whole chunk of terrain (tiles, faces, lighting, rims, shadows and occlusion) into one
+ * image.
  *
  * <p>Drawing one image per chunk instead of one Swing component per piece is what keeps the game
  * fast: about a dozen chunk images are on screen instead of hundreds of pieces. The image is
  * taller than the chunk, because raised tiles are lifted up past its top edge; the space above
  * lower tiles is transparent. Pieces come from {@link TilePieces}, so a painted chunk looks the
- * same as the same tiles drawn piece by piece. Safe to call from a background thread.
+ * same as the same tiles drawn piece by piece. Safe to call from several threads at once.
  */
 final class ChunkPainter implements ChunkedTerrainScene.ChunkSource {
 
@@ -39,7 +40,7 @@ final class ChunkPainter implements ChunkedTerrainScene.ChunkSource {
   }
 
   @Override
-  public ChunkImage paint(int chunkX, int chunkY) {
+  public ChunkImage paint(int chunkX, int chunkY, ShadowCast sun) {
     int firstX = chunkX * SIZE;
     int firstY = chunkY * SIZE;
     int maxHeight = 0;
@@ -59,7 +60,7 @@ final class ChunkPainter implements ChunkedTerrainScene.ChunkSource {
       // Furthest row (highest y) first, so nearer rows are painted over the ones behind them.
       for (int localY = SIZE - 1; localY >= 0; localY--) {
         for (int localX = 0; localX < SIZE; localX++) {
-          paintTile(g, firstX + localX, firstY + localY, leftPx, topPx);
+          paintTile(g, firstX + localX, firstY + localY, leftPx, topPx, sun);
         }
       }
     } finally {
@@ -69,8 +70,9 @@ final class ChunkPainter implements ChunkedTerrainScene.ChunkSource {
   }
 
   /** Paints one tile's pieces, bottom-most first (the reverse of the renderer's order). */
-  private void paintTile(Graphics2D g, int blockX, int blockY, int leftPx, int topPx) {
-    List<Renderable> pieces = tilePieces.build(blockX, blockY);
+  private void paintTile(
+      Graphics2D g, int blockX, int blockY, int leftPx, int topPx, ShadowCast sun) {
+    List<Renderable> pieces = tilePieces.build(blockX, blockY, sun);
     for (int i = pieces.size() - 1; i >= 0; i--) {
       TerrainPiece piece = (TerrainPiece) pieces.get(i);
       // Same placement rule as the game's camera: x is the centre, y is the bottom edge.
