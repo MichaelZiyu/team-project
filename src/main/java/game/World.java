@@ -24,9 +24,10 @@ public class World implements Serializable {
 
     // rendering distance for terrain chunks.
     // TODO: this is a configurable constant and should show up in setting menu
-    private static int TERRAIN_RENDER_DISTANCE = ChunkedTerrainScene.DEFAULT_RENDER_DISTANCE;
+    public static int TERRAIN_RENDER_DISTANCE = 1;
 
-
+    //TEMP: test case
+    private static final long TERRAIN_SEED = 42L;
 
     private Player player;
     private Set<Entity> entities;
@@ -58,12 +59,13 @@ public class World implements Serializable {
     // GameMap is an Iterable<Renderable>
     private GameMap map;
 
-    // render distance controls how many chuncks the game render dynamically
-    public static final double RENDER_DISTANCE = 16;
+    public World(long seed) {
 
-    public World(String seed) {
-        this.map = new GameMap(seed);
+        //TODO: test case
+        seed = TERRAIN_SEED;
+
         this.player = new Player("playername", view);
+        this.map = new GameMap(seed, player);
         this.entities.add(player);
         this.sceneLayers = List.of(
                 new Scene("Background"),
@@ -76,21 +78,6 @@ public class World implements Serializable {
                 new Scene("filters"),
                 new Scene("gameUI")
         );
-    }
-
-    // TEMP: test sample
-    // save a sample world file
-    private static void sample() {
-
-        World w = new World("seed");
-        Player player = new Player("sample", new WorldView());
-        w.sceneLayers = List.of(
-                new Scene("playerActionLayer", player.stateManager.currentActionState),
-                new Scene("playerStatusLayer", player.stateManager.currentStatusStates)
-        );
-        w.player = player;
-        w.entities = Set.of(player);
-        new FileManager("sample").saveWorld(w);
     }
 
     /**
@@ -139,6 +126,7 @@ public class World implements Serializable {
      */
     public void tick() {
         if (pause) return;
+        map.tick();
         for (Entity entity : entities) {
             entity.tick();
         }
@@ -152,11 +140,6 @@ public class World implements Serializable {
 
     public Player getPlayer() {
         return player;
-    }
-
-    // TEMP: test
-    public static void main(String[] args) {
-        sample();
     }
 
 
