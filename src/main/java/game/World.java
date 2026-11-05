@@ -1,5 +1,7 @@
 package game;
 
+import daynight.DayClock;
+import daynight.SunPosition;
 import file.FileManager;
 import game.gameModel.Entity;
 import game.gameModel.Player;
@@ -8,6 +10,7 @@ import game.gameModel.Scene;
 import jswing.WindowManager;
 import terrain.OverworldTerrain;
 import terrainscene.ChunkedTerrainScene;
+import terrainscene.SkyTintLayer;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -39,6 +42,16 @@ public class World implements Serializable {
     private transient ChunkedTerrainScene terrainScene;
     private transient Scene terrainLayer;
 
+    /** How long one full day and night lasts, in real seconds. */
+    public static final double DAY_LENGTH_SECONDS = 10 * 60;
+
+    /** The time of day, saved with the world. Saves from before the day-night cycle have none. */
+    private DayClock clock;
+
+    /** The day-night colour wash over the screen; rebuilt each run, so never saved. */
+    private transient SkyTintLayer skyTint;
+    private transient Scene skyLayer;
+
     public World(String seed) {
         this.seed = seed;
     }
@@ -61,8 +74,12 @@ public class World implements Serializable {
 
     Iterable<Renderable> render() {
         updateTerrainLayer();
-        // The terrain layer goes last: the renderer's first sprites end up on top, so terrain is underneath.
-        return () -> Stream.concat(StreamSupport.stream(sceneLayers.spliterator(), false), Stream.of(terrainLayer))
+        updateSkyLayer();
+        // The renderer's first sprites end up on top: the sky tint goes first so it covers everything,
+        // and the terrain layer goes last so terrain is underneath.
+        return () -> Stream.concat(
+                        Stream.of(skyLayer),
+                        Stream.concat(StreamSupport.stream(sceneLayers.spliterator(), false), Stream.of(terrainLayer)))
                 .flatMap(scene -> StreamSupport.stream(
                                 scene.getContent().spliterator(), false)
                         .map(renderable -> (Renderable) renderable))
@@ -78,7 +95,30 @@ public class World implements Serializable {
                     TERRAIN_RENDER_DISTANCE);
             terrainLayer = new Scene(terrainScene);
         }
-        terrainScene.update(player.coordinate[0], player.coordinate[1]);
+        SunPosition sun = SunPosition.at(getClock().timeOfDay());
+        terrainScene.update(player.coordinate[0], player.coordinate[1], sun);
+    }
+
+    /** Creates the sky tint on first use (also after loading a save) and sets it for the time of day. */
+    private void updateSkyLayer() {
+        if (skyTint == null) {
+            skyTint = new SkyTintLayer(WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
+            skyLayer = new Scene(skyTint);
+        }
+        skyTint.update(player.coordinate[0], player.coordinate[1], getClock().timeOfDay());
+    }
+
+    /**
+     * Returns the world's clock, creating it at the morning start time for saves made before the
+     * day-night cycle existed.
+     *
+     * @return the clock, which ticks with the world
+     */
+    public DayClock getClock() {
+        if (clock == null) {
+            clock = DayClock.forRealTime(DAY_LENGTH_SECONDS, GameController.FRAME_TIME);
+        }
+        return clock;
     }
 
     public void takeCommand(String command) {
@@ -97,6 +137,7 @@ public class World implements Serializable {
 
     public void tick() {
         if (pause) return;
+        getClock().tick();
         for (Entity entity : entities) {
             entity.tick();
         }
