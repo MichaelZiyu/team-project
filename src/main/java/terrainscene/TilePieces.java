@@ -36,9 +36,10 @@ final class TilePieces {
   /**
    * Returns a tile's rims (one per back, front, left or right edge where the neighbour is
    * lower), its shadow (if taller terrain toward the sun shades it), its occlusion (one per back,
-   * left or right edge where the neighbour is higher), its top, then the face steps visible below
-   * it: one per level that the tile stands above the tile in front of it, from the top step down,
-   * each preceded by the overlay that darkens it.
+   * left or right edge where the neighbour is higher, then one per back corner where only the
+   * diagonal neighbour is), its sunlight, its top, then the face steps visible below it: one per
+   * level that the tile stands above the tile in front of it, from the top step down, each
+   * preceded by the overlay that shades it.
    */
   List<Renderable> build(int blockX, int blockY) {
     int height = terrain.heightAt(blockX, blockY);
@@ -48,13 +49,16 @@ final class TilePieces {
     addRimIfLower(pieces, blockX, blockY, type, height, Edge.FRONT, 0, -1);
     addRimIfLower(pieces, blockX, blockY, type, height, Edge.LEFT, -1, 0);
     addRimIfLower(pieces, blockX, blockY, type, height, Edge.RIGHT, 1, 0);
-    Area shadow = shadows.shadowOn(blockX, blockY);
-    if (!shadow.isEmpty()) {
+    List<Area> shadow = shadows.softShadowOn(blockX, blockY);
+    if (shadow.stream().anyMatch(layer -> !layer.isEmpty())) {
       pieces.add(factory.shadow(blockX, blockY, height, shadow));
     }
     addOcclusionIfHigher(pieces, blockX, blockY, height, Edge.BACK, 0, 1);
     addOcclusionIfHigher(pieces, blockX, blockY, height, Edge.LEFT, -1, 0);
     addOcclusionIfHigher(pieces, blockX, blockY, height, Edge.RIGHT, 1, 0);
+    addCornerOcclusionIfHigher(pieces, blockX, blockY, height, Corner.BACK_LEFT, -1);
+    addCornerOcclusionIfHigher(pieces, blockX, blockY, height, Corner.BACK_RIGHT, 1);
+    pieces.add(factory.sunlight(blockX, blockY, height));
     pieces.add(factory.top(blockX, blockY, type, height));
     int frontHeight = terrain.heightAt(blockX, blockY - 1);
     for (int level = height - 1; level >= frontHeight; level--) {
@@ -90,6 +94,20 @@ final class TilePieces {
       int stepY) {
     if (terrain.heightAt(blockX + stepX, blockY + stepY) > height) {
       pieces.add(factory.occlusion(blockX, blockY, height, edge));
+    }
+  }
+
+  /**
+   * Adds occlusion in a back corner if the diagonal neighbour behind it is higher but neither
+   * tile beside that corner is, since their edge strips would already darken it.
+   */
+  private void addCornerOcclusionIfHigher(
+      List<Renderable> pieces, int blockX, int blockY, int height, Corner corner, int stepX) {
+    boolean diagonalHigher = terrain.heightAt(blockX + stepX, blockY + 1) > height;
+    boolean backHigher = terrain.heightAt(blockX, blockY + 1) > height;
+    boolean sideHigher = terrain.heightAt(blockX + stepX, blockY) > height;
+    if (diagonalHigher && !backHigher && !sideHigher) {
+      pieces.add(factory.cornerOcclusion(blockX, blockY, height, corner));
     }
   }
 

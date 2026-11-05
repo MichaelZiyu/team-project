@@ -2,6 +2,7 @@ package terrainscene;
 
 import game.gameModel.Renderable;
 import java.awt.geom.Area;
+import java.util.List;
 import terrain.BlockType;
 
 /** Creates the standard terrain pieces, showing the images in {@code textures/topdown/terrain}. */
@@ -18,8 +19,13 @@ final class PlaceholderPieces implements TerrainScene.TileFactory {
   }
 
   @Override
-  public Renderable shadow(int blockX, int blockY, int height, Area shape) {
-    return new ShadowRenderable(blockX, blockY, height, shape);
+  public Renderable shadow(int blockX, int blockY, int height, List<Area> layers) {
+    return new ShadowRenderable(blockX, blockY, height, layers);
+  }
+
+  @Override
+  public Renderable sunlight(int blockX, int blockY, int height) {
+    return new SunlightRenderable(blockX, blockY, height);
   }
 
   @Override
@@ -30,6 +36,11 @@ final class PlaceholderPieces implements TerrainScene.TileFactory {
   @Override
   public Renderable occlusion(int blockX, int blockY, int height, Edge edge) {
     return new OcclusionRenderable(blockX, blockY, height, edge);
+  }
+
+  @Override
+  public Renderable cornerOcclusion(int blockX, int blockY, int height, Corner corner) {
+    return new CornerOcclusionRenderable(blockX, blockY, height, corner);
   }
 
   @Override

@@ -14,9 +14,10 @@ import terrain.Terrain;
 import terrain.TerrainCoordinates;
 
 /**
- * The terrain around the player, ready for the renderer to draw: tile tops, the terrace faces
- * that make hills look raised, the shadows they cast, dark rims along every drop-off, and ambient
- * occlusion at the foot of every wall.
+ * The terrain around the player, ready for the renderer to draw: tile tops warmed by the sun,
+ * the terrace faces that make hills look raised, the soft shadows they cast, rims along every
+ * drop-off (bright on the sides facing the sun, dark on the others), and ambient occlusion at the
+ * foot of every wall.
  *
  * <p>Call {@link #update} with the player's position before each frame. Tiles are rebuilt only
  * when the player moves into a different block, and tiles that stay on screen are reused, so
@@ -24,8 +25,9 @@ import terrain.TerrainCoordinates;
  *
  * <p>The renderer draws the first sprite it receives on top. Iteration therefore starts with the
  * row nearest the camera (lowest y), so nearer tiles cover the ones behind them. Within a tile,
- * its rims come first, then its shadow, then its occlusion (all three lie over the tile), then its
- * top, then its faces, each step preceded by the overlay that darkens it.
+ * its rims come first, then its shadow, then its edge and corner occlusion, then its sunlight (all
+ * of these lie over the tile), then its top, then its faces, each step preceded by the overlay
+ * that shades it.
  */
 public final class TerrainScene implements Iterable<Renderable> {
 
@@ -56,15 +58,26 @@ public final class TerrainScene implements Iterable<Renderable> {
     Renderable face(int blockX, int blockY, BlockType tileType, int level, boolean topStep);
 
     /**
-     * Creates a shadow lying on a tile's top.
+     * Creates a soft shadow lying on a tile's top.
      *
      * @param blockX the shaded tile's x coordinate, in blocks
      * @param blockY the shaded tile's y coordinate, in blocks
      * @param height the shaded tile's terrace height
-     * @param shape the shaded region in the tile's own coordinates (y up), never empty
+     * @param layers the shadow cast from several sun positions, in the tile's own coordinates (y
+     *     up), as from {@link SunShadows#softShadowOn}; at least one is not empty
      * @return a renderable for the shadow
      */
-    Renderable shadow(int blockX, int blockY, int height, Area shape);
+    Renderable shadow(int blockX, int blockY, int height, List<Area> layers);
+
+    /**
+     * Creates the warm overlay that lights a tile's top.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param height the tile's terrace height
+     * @return a renderable for the overlay
+     */
+    Renderable sunlight(int blockX, int blockY, int height);
 
     /**
      * Creates a rim along one edge of a tile's top.
@@ -90,7 +103,19 @@ public final class TerrainScene implements Iterable<Renderable> {
     Renderable occlusion(int blockX, int blockY, int height, Edge edge);
 
     /**
-     * Creates the overlay that darkens one face step, so sides look darker than tops.
+     * Creates an ambient-occlusion shadow in a back corner of a tile's top, where only the
+     * diagonal neighbour is higher.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param height the tile's terrace height
+     * @param corner the corner touching the higher tile
+     * @return a renderable for the shadow
+     */
+    Renderable cornerOcclusion(int blockX, int blockY, int height, Corner corner);
+
+    /**
+     * Creates the cool overlay that shades one face step, so sides look darker than tops.
      *
      * @param blockX the tile's x coordinate, in blocks
      * @param blockY the tile's y coordinate, in blocks
@@ -132,15 +157,16 @@ public final class TerrainScene implements Iterable<Renderable> {
   }
 
   /**
-   * Creates a scene that shows the image for each block type, terrace faces, shadows, rims and
-   * ambient occlusion.
+   * Creates a scene that shows the image for each block type, terrace faces, sunlight, shadows,
+   * rims and ambient occlusion.
    *
    * @param terrain the terrain to show
    * @param viewWidthPx the screen width, in pixels
    * @param viewHeightPx the screen height, in pixels
-   * @return a scene drawing {@link TileRenderable} tops, {@link FaceRenderable} faces and {@link
-   *     ShadowRenderable} shadows, {@link RimRenderable} rims and {@link OcclusionRenderable}
-   *     occlusion, with each face step darkened by a {@link FaceShadeRenderable}
+   * @return a scene drawing {@link TileRenderable} tops lit by {@link SunlightRenderable}, {@link
+   *     FaceRenderable} faces, {@link ShadowRenderable} shadows, {@link RimRenderable} rims, and
+   *     {@link OcclusionRenderable} and {@link CornerOcclusionRenderable} occlusion, with each face
+   *     step shaded by a {@link FaceShadeRenderable}
    */
   public static TerrainScene withPlaceholderTiles(
       Terrain terrain, int viewWidthPx, int viewHeightPx) {
