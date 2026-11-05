@@ -41,21 +41,8 @@ public class GameController {
                     world.handleCommand(command);
                 }
             }
-            world.tick();
 
-            long elapsed = System.nanoTime() - startTime;
-            long remaining = (long) (FRAME_TIME * 1_000_000_000L) - elapsed;
-            if (remaining > 0) {
-                try {
-                    Thread.sleep(
-                            remaining / 1_000_000,
-                            (int) (remaining % 1_000_000)
-                    );
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
+            world.tick();
 
             // Renderer.render() is responsible for all operations that update the main panel.
             // Execute it on the EDT to ensure thread-safe Swing component updates.
@@ -73,6 +60,22 @@ public class GameController {
             } catch (InvocationTargetException e) {
                 throw new RuntimeException("rendering failed", e.getCause());
             }
+
+            long elapsed = System.nanoTime() - startTime;
+            long remaining = (long) (FRAME_TIME * 1_000_000_000L) - elapsed;
+            if (remaining > 0) {
+                try {
+                    Thread.sleep(
+                            remaining / 1_000_000,
+                            (int) (remaining % 1_000_000)
+                    );
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+
         }
         PanelStateController.transition("Exit");
     }
