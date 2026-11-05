@@ -12,6 +12,7 @@ public abstract class Entity extends PhysicsBody {
     int hp, attack, maxHp, speed;
     String name;
 
+    public MoveStateManager moveManager = new MoveStateManager(this);
     public EntityStateManager stateManager = new EntityStateManager(this);
     WorldView view;
 

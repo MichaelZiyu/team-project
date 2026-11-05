@@ -12,7 +12,7 @@ public class MoveBackwardState extends ActionState{
     @Override
     public String handleCommand(Player.PlayerCommand command) {
         switch (command) {
-            case Player.PlayerCommand.CANCEL_WS -> {
+            case Player.PlayerCommand.CANCEL_BACKWARD -> {
                 return "rest";
             }
             default -> {

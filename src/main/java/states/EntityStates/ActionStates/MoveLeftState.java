@@ -11,7 +11,7 @@ public class MoveLeftState extends ActionState {
 
     public String handleCommand(Player.PlayerCommand command) {
         switch (command) {
-            case Player.PlayerCommand.CANCEL_AD -> {
+            case Player.PlayerCommand.CANCEL_LEFT -> {
                 return "rest";
             }
             default -> {

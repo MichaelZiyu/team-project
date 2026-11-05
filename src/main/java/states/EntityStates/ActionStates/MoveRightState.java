@@ -12,7 +12,7 @@ public class MoveRightState extends ActionState{
     @Override
     public String handleCommand(Player.PlayerCommand command) {
         switch (command) {
-            case Player.PlayerCommand.CANCEL_AD -> {
+            case Player.PlayerCommand.CANCEL_RIGHT -> {
                 return "rest";
             }
             default -> {

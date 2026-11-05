@@ -5,6 +5,8 @@ import game.WorldView;
 import testpackage.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Player extends Entity {
     private static final long serialVersionUID = 1L;
@@ -20,8 +22,10 @@ public class Player extends Entity {
         MOVE_BACKWARD,
         MOVE_LEFT,
         MOVE_RIGHT,
-        CANCEL_WS,
-        CANCEL_AD,
+        CANCEL_FORWARD,
+        CANCEL_BACKWARD,
+        CANCEL_LEFT,
+        CANCEL_RIGHT,
 
         RUN,
         CANCEL_RUN,
@@ -36,6 +40,17 @@ public class Player extends Entity {
         // Other
         INTERACT
     }
+
+    private static final Set<PlayerCommand> directionCommands = new HashSet<>(Set.of(
+            PlayerCommand.MOVE_FORWARD,
+            PlayerCommand.MOVE_BACKWARD,
+            PlayerCommand.MOVE_LEFT,
+            PlayerCommand.MOVE_RIGHT,
+            PlayerCommand.CANCEL_FORWARD,
+            PlayerCommand.CANCEL_BACKWARD,
+            PlayerCommand.CANCEL_LEFT,
+            PlayerCommand.CANCEL_RIGHT
+    ));
 
 
     public Player(String name, WorldView view) {
@@ -52,18 +67,9 @@ public class Player extends Entity {
         PlayerCommand command;
 
         while ((command = CommandProcessor.commandQueue.poll()) != null) {
-            switch (command) {
-                case MOVE_FORWARD -> setVelocityY(SPEED);
-                case MOVE_BACKWARD -> setVelocityY(-SPEED);
-                case MOVE_LEFT -> setVelocityX(-SPEED);
-                case MOVE_RIGHT -> setVelocityX(SPEED);
-                case CANCEL_WS -> setVelocityY(0);
-                case CANCEL_AD -> setVelocityX(0);
-                case RUN -> setRunCoefficient(RUN_COEFFICIENT);
-                case CANCEL_RUN -> resetRunCoefficient();
-            }
-
-            stateManager.handleCommand(command);        }
+            stateManager.handleCommand(command);
+        }
+        stateManager.apply();
     }
 
     public void tick() {
