@@ -21,13 +21,17 @@ class ChunkedTerrainSceneTest {
   /** How often each chunk was painted, keyed "x,y". */
   private final Map<String, Integer> paintCounts = new HashMap<>();
 
+  /** The lighting each chunk image was painted with. */
+  private final Map<BufferedImage, ShadowCast> paintedWith = new HashMap<>();
+
   /** Work handed to the "background thread"; run when the test says so. */
   private final List<Runnable> queued = new ArrayList<>();
 
-  private ChunkImage fakePaint(int chunkX, int chunkY) {
+  private ChunkImage fakePaint(int chunkX, int chunkY, ShadowCast sun) {
     paintCounts.merge(chunkX + "," + chunkY, 1, Integer::sum);
-    return new ChunkImage(
-        chunkX, chunkY, new BufferedImage(4, 4, BufferedImage.TYPE_INT_ARGB), chunkY * CHUNK_PX);
+    BufferedImage image = new BufferedImage(4, 4, BufferedImage.TYPE_INT_ARGB);
+    paintedWith.put(image, sun);
+    return new ChunkImage(chunkX, chunkY, image, chunkY * CHUNK_PX);
   }
 
   /** A scene that paints immediately, as if the background thread were instant. */
@@ -45,6 +49,12 @@ class ChunkedTerrainSceneTest {
     List<Runnable> work = new ArrayList<>(queued);
     queued.clear();
     work.forEach(Runnable::run);
+  }
+
+  /** Returns the image a chunk sprite shows. */
+  private static BufferedImage imageOf(ChunkRenderable chunk) {
+    javax.swing.Icon icon = chunk.getTexture().getContent().getIcon();
+    return (BufferedImage) ((javax.swing.ImageIcon) icon).getImage();
   }
 
   private static List<ChunkRenderable> chunks(ChunkedTerrainScene scene) {
@@ -136,11 +146,11 @@ class ChunkedTerrainSceneTest {
     boolean[] fail = {true};
     ChunkedTerrainScene scene =
         new ChunkedTerrainScene(
-            (x, y) -> {
+            (x, y, sun) -> {
               if (fail[0]) {
                 throw new IllegalStateException("simulated failure");
               }
-              return fakePaint(x, y);
+              return fakePaint(x, y, sun);
             },
             Runnable::run,
             VIEW_WIDTH,
@@ -152,6 +162,79 @@ class ChunkedTerrainSceneTest {
     fail[0] = false;
     scene.update(0, 0);
     assertEquals(expectedChunks(0, 0, 0), scene.displayedCount());
+  }
+
+  @Test
+  void movingSunRepaintsEveryChunkAndSwapsThemAllAtOnce() {
+    ChunkedTerrainScene scene = delayedScene();
+    scene.update(0, 0, ShadowCast.DEFAULT);
+    runQueued();
+    scene.update(0, 0, ShadowCast.DEFAULT);
+    int shown = scene.displayedCount();
+    ShadowCast later = new ShadowCast(-20, -30, 1);
+    scene.update(0, 0, later);
+    assertTrue(scene.isRelighting());
+    assertEquals(shown, queued.size(), "every chunk around the player is repainted");
+    // Finish all but one: the old images must all stay, so no seam shows between lightings.
+    Runnable last = queued.remove(queued.size() - 1);
+    runQueued();
+    scene.update(0, 0, later);
+    assertTrue(scene.isRelighting());
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(ShadowCast.DEFAULT, paintedWith.get(imageOf(chunk)));
+    }
+    last.run();
+    scene.update(0, 0, later);
+    assertTrue(!scene.isRelighting());
+    assertEquals(shown, scene.displayedCount());
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(later, paintedWith.get(imageOf(chunk)));
+    }
+  }
+
+  @Test
+  void tinySunMovementsDoNotRepaint() {
+    ChunkedTerrainScene scene = instantScene(0);
+    scene.update(0, 0, ShadowCast.DEFAULT);
+    int painted = paintCounts.values().stream().mapToInt(Integer::intValue).sum();
+    scene.update(0, 0, new ShadowCast(-31, -15, 0.95));
+    assertEquals(painted, paintCounts.values().stream().mapToInt(Integer::intValue).sum());
+    scene.update(0, 0, ShadowCast.NIGHT);
+    assertEquals(2 * painted, paintCounts.values().stream().mapToInt(Integer::intValue).sum());
+    // Night stays night: nothing to repaint until the sun comes up.
+    scene.update(0, 0, ShadowCast.NIGHT);
+    assertEquals(2 * painted, paintCounts.values().stream().mapToInt(Integer::intValue).sum());
+  }
+
+  @Test
+  void aRepaintFinishesBeforeTheNextOneStartsFromTheLatestSun() {
+    ChunkedTerrainScene scene = delayedScene();
+    scene.update(0, 0, ShadowCast.DEFAULT);
+    runQueued();
+    scene.update(0, 0, ShadowCast.DEFAULT);
+    ShadowCast first = new ShadowCast(-20, -30, 1);
+    scene.update(0, 0, first);
+    int requests = queued.size();
+    // The sun keeps moving while the first repaint is under way: nothing new is requested yet.
+    scene.update(0, 0, new ShadowCast(0, -30, 1));
+    ShadowCast latest = new ShadowCast(20, -30, 1);
+    scene.update(0, 0, latest);
+    assertEquals(requests, queued.size());
+    runQueued();
+    scene.update(0, 0, latest);
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(first, paintedWith.get(imageOf(chunk)), "the first repaint is shown");
+    }
+    // On the next frame the next repaint starts, straight for the latest sun.
+    scene.update(0, 0, latest);
+    assertTrue(scene.isRelighting());
+    assertEquals(requests, queued.size());
+    runQueued();
+    scene.update(0, 0, latest);
+    assertTrue(!scene.isRelighting());
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(latest, paintedWith.get(imageOf(chunk)));
+    }
   }
 
   @Test

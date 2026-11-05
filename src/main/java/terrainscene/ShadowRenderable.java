@@ -18,7 +18,8 @@ import terrain.TerrainCoordinates;
  * region worked out by {@link SunShadows}, so the tile underneath still shows through. The fill
  * is a cool blue rather than black, which makes the sunlit ground around it look warmer, as
  * shadows outdoors do. A shadow made of several regions (from {@link SunShadows#softShadowOn})
- * fills each one faintly, so its edges fade out.
+ * fills each one faintly, so its edges fade out. Near dawn and dusk the whole shadow is fainter,
+ * because sunlight is weak.
  */
 public final class ShadowRenderable implements TerrainPiece {
 
@@ -32,6 +33,7 @@ public final class ShadowRenderable implements TerrainPiece {
   private final int blockX;
   private final int blockY;
   private final int height;
+  private final double strength;
 
   /** Kept only while the scene is live; shadows are recomputed from the terrain, never saved. */
   private final transient List<Area> layers;
@@ -52,7 +54,7 @@ public final class ShadowRenderable implements TerrainPiece {
    *     SunShadows#shadowOn(int, int)}
    */
   public ShadowRenderable(int blockX, int blockY, int height, Area shape) {
-    this(blockX, blockY, height, List.of(shape));
+    this(blockX, blockY, height, List.of(shape), 1);
   }
 
   /**
@@ -62,16 +64,23 @@ public final class ShadowRenderable implements TerrainPiece {
    * @param blockY the y coordinate of the shaded tile, in blocks
    * @param height the shaded tile's terrace height, so the shadow sits on its top
    * @param layers the regions in the tile's own coordinates (y up), as from {@link
-   *     SunShadows#softShadowOn(int, int)}; at least one
-   * @throws IllegalArgumentException if {@code layers} is empty
+   *     SunShadows#softShadowOn(int, int, ShadowCast)}; at least one
+   * @param strength how strong sunlight is, from 0 to 1; the shadow is this fraction as dark
+   * @throws IllegalArgumentException if {@code layers} is empty or {@code strength} is out of
+   *     range
    */
-  public ShadowRenderable(int blockX, int blockY, int height, List<Area> layers) {
+  public ShadowRenderable(
+      int blockX, int blockY, int height, List<Area> layers, double strength) {
     if (layers.isEmpty()) {
       throw new IllegalArgumentException("a shadow needs at least one region");
+    }
+    if (!(strength >= 0 && strength <= 1)) {
+      throw new IllegalArgumentException("strength must be in [0, 1]: " + strength);
     }
     this.blockX = blockX;
     this.blockY = blockY;
     this.height = height;
+    this.strength = strength;
     this.layers = new ArrayList<>();
     for (Area layer : layers) {
       this.layers.add(new Area(layer));
@@ -117,7 +126,7 @@ public final class ShadowRenderable implements TerrainPiece {
    *
    * <p>Both the renderer and {@link ChunkPainter} draw this same image, so a shadow looks the same
    * either way. Each layer is filled faintly enough that all of them together reach {@link
-   * #SHADOW_COLOUR}'s opacity.
+   * #SHADOW_COLOUR}'s opacity, scaled by the sunlight's strength.
    */
   private synchronized BufferedImage image() {
     if (image == null) {
@@ -125,7 +134,7 @@ public final class ShadowRenderable implements TerrainPiece {
       Graphics2D g = painted.createGraphics();
       try {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        double fullOpacity = SHADOW_COLOUR.getAlpha() / 255.0;
+        double fullOpacity = strength * SHADOW_COLOUR.getAlpha() / 255.0;
         double layerOpacity = 1 - Math.pow(1 - fullOpacity, 1.0 / layers.size());
         g.setColor(
             new Color(

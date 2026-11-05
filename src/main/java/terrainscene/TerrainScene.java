@@ -65,19 +65,21 @@ public final class TerrainScene implements Iterable<Renderable> {
      * @param height the shaded tile's terrace height
      * @param layers the shadow cast from several sun positions, in the tile's own coordinates (y
      *     up), as from {@link SunShadows#softShadowOn}; at least one is not empty
+     * @param strength how strong sunlight is, from 0 to 1, which scales the shadow's darkness
      * @return a renderable for the shadow
      */
-    Renderable shadow(int blockX, int blockY, int height, List<Area> layers);
+    Renderable shadow(int blockX, int blockY, int height, List<Area> layers, double strength);
 
     /**
-     * Creates the warm overlay that lights a tile's top.
+     * Creates the warm overlay that lights a tile's top during the day.
      *
      * @param blockX the tile's x coordinate, in blocks
      * @param blockY the tile's y coordinate, in blocks
      * @param height the tile's terrace height
+     * @param strength how strong sunlight is, from 0 (exclusive) to 1
      * @return a renderable for the overlay
      */
-    Renderable sunlight(int blockX, int blockY, int height);
+    Renderable sunlight(int blockX, int blockY, int height, double strength);
 
     /**
      * Creates a rim along one edge of a tile's top.
@@ -87,9 +89,10 @@ public final class TerrainScene implements Iterable<Renderable> {
      * @param type the tile's block type, which picks the rim colour
      * @param height the tile's terrace height
      * @param side which edge the rim runs along
+     * @param light how much sunlight the edge catches, from 0 (dark) to 1 (bright)
      * @return a renderable for the rim
      */
-    Renderable rim(int blockX, int blockY, BlockType type, int height, Edge side);
+    Renderable rim(int blockX, int blockY, BlockType type, int height, Edge side, double light);
 
     /**
      * Creates an ambient-occlusion gradient along one edge of a tile's top.
@@ -140,6 +143,7 @@ public final class TerrainScene implements Iterable<Renderable> {
 
   private Map<BlockPos, List<Renderable>> tiles = new LinkedHashMap<>();
   private BlockPos centre;
+  private ShadowCast sun = ShadowCast.DEFAULT;
   private int pieceCount;
 
   /**
@@ -174,20 +178,33 @@ public final class TerrainScene implements Iterable<Renderable> {
   }
 
   /**
-   * Moves the scene to be centred on the player. Does nothing if the player is still in the
-   * same block as last time.
+   * Moves the scene to be centred on the player, lit by the default sun. Does nothing if the
+   * player is still in the same block as last time.
    *
    * @param playerX the player's x position, in pixels
    * @param playerY the player's y position, in pixels
    */
   public void update(double playerX, double playerY) {
+    update(playerX, playerY, ShadowCast.DEFAULT);
+  }
+
+  /**
+   * Moves the scene to be centred on the player and lit by the given sun. Tiles are rebuilt only
+   * when the player enters a different block or the lighting changes.
+   *
+   * @param playerX the player's x position, in pixels
+   * @param playerY the player's y position, in pixels
+   * @param sun how the sun lights the terrain
+   */
+  public void update(double playerX, double playerY, ShadowCast sun) {
     BlockPos newCentre =
         new BlockPos(
             TerrainCoordinates.pixelToBlock(playerX), TerrainCoordinates.pixelToBlock(playerY));
-    if (newCentre.equals(centre)) {
+    if (newCentre.equals(centre) && sun.equals(this.sun)) {
       return;
     }
-    Map<BlockPos, List<Renderable>> oldTiles = tiles;
+    Map<BlockPos, List<Renderable>> oldTiles = sun.equals(this.sun) ? tiles : Map.of();
+    this.sun = sun;
     Map<BlockPos, List<Renderable>> newTiles = new LinkedHashMap<>();
     int count = 0;
     // Nearest row (lowest y) first, so it is drawn on top of the rows behind it.
@@ -200,7 +217,7 @@ public final class TerrainScene implements Iterable<Renderable> {
         BlockPos position = new BlockPos(blockX, blockY);
         List<Renderable> pieces = oldTiles.get(position);
         if (pieces == null) {
-          pieces = tilePieces.build(blockX, blockY);
+          pieces = tilePieces.build(blockX, blockY, sun);
         }
         newTiles.put(position, pieces);
         count += pieces.size();

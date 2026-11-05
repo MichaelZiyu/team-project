@@ -43,6 +43,7 @@ class TerrainSceneTest {
     private boolean isShadow;
     private List<Area> shadowLayers;
     private Edge rimSide;
+    private double rimLight;
     private Edge occlusionEdge;
     private Corner occlusionCorner;
     private boolean isSunlight;
@@ -116,7 +117,8 @@ class TerrainSceneTest {
           }
 
           @Override
-          public Renderable shadow(int blockX, int blockY, int height, List<Area> layers) {
+          public Renderable shadow(
+              int blockX, int blockY, int height, List<Area> layers, double strength) {
             piecesCreated++;
             FakePiece shadow = new FakePiece(false, blockX, blockY, null, height);
             shadow.isShadow = true;
@@ -125,7 +127,7 @@ class TerrainSceneTest {
           }
 
           @Override
-          public Renderable sunlight(int blockX, int blockY, int height) {
+          public Renderable sunlight(int blockX, int blockY, int height, double strength) {
             piecesCreated++;
             FakePiece sunlight = new FakePiece(false, blockX, blockY, null, height);
             sunlight.isSunlight = true;
@@ -134,10 +136,11 @@ class TerrainSceneTest {
 
           @Override
           public Renderable rim(
-              int blockX, int blockY, BlockType type, int height, Edge side) {
+              int blockX, int blockY, BlockType type, int height, Edge side, double light) {
             piecesCreated++;
             FakePiece rim = new FakePiece(false, blockX, blockY, type, height);
             rim.rimSide = side;
+            rim.rimLight = light;
             return rim;
           }
 
@@ -400,6 +403,25 @@ class TerrainSceneTest {
       total += expected.size();
     }
     assertTrue(total > 0, "hilly ground has outside corners, so some corner occlusion is expected");
+  }
+
+  @Test
+  void rimsFacingTheSunAreLitAndNightHasNoSunlightOrShadows() {
+    ShadowCast evening = ShadowCast.from(daynight.SunPosition.at(0.7));
+    TerrainScene scene = newScene();
+    scene.update(-46_800, 26_100, evening);
+    int lit = 0;
+    for (FakePiece piece : pieces(scene)) {
+      if (piece.rimSide != null) {
+        assertEquals(evening.edgeLight(piece.rimSide), piece.rimLight, piece.rimSide.name());
+        lit += piece.rimLight > 0 ? 1 : 0;
+      }
+    }
+    assertTrue(lit > 0, "the evening sun lights some rims");
+    scene.update(-46_800, 26_100, ShadowCast.NIGHT);
+    for (FakePiece piece : pieces(scene)) {
+      assertTrue(!piece.isSunlight && !piece.isShadow && piece.rimLight == 0, "nothing lit at night");
+    }
   }
 
   @Test

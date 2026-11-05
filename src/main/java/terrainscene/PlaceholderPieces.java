@@ -19,18 +19,20 @@ final class PlaceholderPieces implements TerrainScene.TileFactory {
   }
 
   @Override
-  public Renderable shadow(int blockX, int blockY, int height, List<Area> layers) {
-    return new ShadowRenderable(blockX, blockY, height, layers);
+  public Renderable shadow(
+      int blockX, int blockY, int height, List<Area> layers, double strength) {
+    return new ShadowRenderable(blockX, blockY, height, layers, strength);
   }
 
   @Override
-  public Renderable sunlight(int blockX, int blockY, int height) {
-    return new SunlightRenderable(blockX, blockY, height);
+  public Renderable sunlight(int blockX, int blockY, int height, double strength) {
+    return new SunlightRenderable(blockX, blockY, height, strength);
   }
 
   @Override
-  public Renderable rim(int blockX, int blockY, BlockType type, int height, Edge side) {
-    return new RimRenderable(blockX, blockY, type, height, side);
+  public Renderable rim(
+      int blockX, int blockY, BlockType type, int height, Edge side, double light) {
+    return new RimRenderable(blockX, blockY, type, height, side, light);
   }
 
   @Override
