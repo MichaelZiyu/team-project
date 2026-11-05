@@ -41,10 +41,21 @@ class TerrainSceneTest {
     private final int value;
     private boolean topStep;
     private boolean isShadow;
-    private Area shadowShape;
+    private List<Area> shadowLayers;
     private Edge rimSide;
     private Edge occlusionEdge;
+    private Corner occlusionCorner;
+    private boolean isSunlight;
     private boolean isFaceShade;
+
+    /** Returns whether this piece lies over its tile's top, rather than being the top or a face. */
+    boolean isOverlay() {
+      return isShadow
+          || rimSide != null
+          || occlusionEdge != null
+          || occlusionCorner != null
+          || isSunlight;
+    }
 
     FakePiece(boolean isFace, int blockX, int blockY, BlockType type, int value) {
       this.isFace = isFace;
@@ -105,12 +116,20 @@ class TerrainSceneTest {
           }
 
           @Override
-          public Renderable shadow(int blockX, int blockY, int height, Area shape) {
+          public Renderable shadow(int blockX, int blockY, int height, List<Area> layers) {
             piecesCreated++;
             FakePiece shadow = new FakePiece(false, blockX, blockY, null, height);
             shadow.isShadow = true;
-            shadow.shadowShape = shape;
+            shadow.shadowLayers = layers;
             return shadow;
+          }
+
+          @Override
+          public Renderable sunlight(int blockX, int blockY, int height) {
+            piecesCreated++;
+            FakePiece sunlight = new FakePiece(false, blockX, blockY, null, height);
+            sunlight.isSunlight = true;
+            return sunlight;
           }
 
           @Override
@@ -127,6 +146,14 @@ class TerrainSceneTest {
             piecesCreated++;
             FakePiece occlusion = new FakePiece(false, blockX, blockY, null, height);
             occlusion.occlusionEdge = edge;
+            return occlusion;
+          }
+
+          @Override
+          public Renderable cornerOcclusion(int blockX, int blockY, int height, Corner corner) {
+            piecesCreated++;
+            FakePiece occlusion = new FakePiece(false, blockX, blockY, null, height);
+            occlusion.occlusionCorner = corner;
             return occlusion;
           }
 
@@ -151,11 +178,7 @@ class TerrainSceneTest {
   private static Map<String, FakePiece> topsByPosition(TerrainScene scene) {
     Map<String, FakePiece> tops = new HashMap<>();
     for (FakePiece piece : pieces(scene)) {
-      if (!piece.isFace
-          && !piece.isShadow
-          && piece.rimSide == null
-          && piece.occlusionEdge == null
-          && !piece.isFaceShade) {
+      if (!piece.isFace && !piece.isOverlay() && !piece.isFaceShade) {
         tops.put(piece.blockX + "," + piece.blockY, piece);
       }
     }
@@ -243,9 +266,13 @@ class TerrainSceneTest {
       FakePiece piece = all.get(i);
       if (piece.isShadow) {
         shadowCount++;
-        assertTrue(sun.shadowOn(piece.blockX, piece.blockY).equals(piece.shadowShape));
+        List<Area> expected = sun.softShadowOn(piece.blockX, piece.blockY);
+        assertEquals(expected.size(), piece.shadowLayers.size());
+        for (int k = 0; k < expected.size(); k++) {
+          assertTrue(expected.get(k).equals(piece.shadowLayers.get(k)));
+        }
         int j = i + 1;
-        while (all.get(j).occlusionEdge != null) {
+        while (all.get(j).isOverlay()) {
           j++;
         }
         FakePiece next = all.get(j);
@@ -256,7 +283,7 @@ class TerrainSceneTest {
     }
     int expected = 0;
     for (FakePiece top : topsByPosition(scene).values()) {
-      if (!sun.shadowOn(top.blockX, top.blockY).isEmpty()) {
+      if (sun.softShadowOn(top.blockX, top.blockY).stream().anyMatch(a -> !a.isEmpty())) {
         expected++;
       }
     }
@@ -311,11 +338,11 @@ class TerrainSceneTest {
         occluded.computeIfAbsent(piece.blockX + "," + piece.blockY, k -> new ArrayList<>())
             .add(piece.occlusionEdge);
         int j = i + 1;
-        while (all.get(j).occlusionEdge != null) {
+        while (all.get(j).isOverlay()) {
           j++;
         }
         FakePiece top = all.get(j);
-        assertTrue(!top.isFace && !top.isShadow && top.rimSide == null, "occlusion precedes top");
+        assertTrue(!top.isFace, "occlusion precedes top");
         assertEquals(piece.blockX, top.blockX);
         assertEquals(piece.blockY, top.blockY);
       }
@@ -339,6 +366,58 @@ class TerrainSceneTest {
       total += expected.size();
     }
     assertTrue(total > 0, "spawn has walls, so some occlusion is expected");
+  }
+
+  @Test
+  void cornerOcclusionAppearsWhereOnlyTheDiagonalBehindIsHigher() {
+    TerrainScene scene = newScene();
+    scene.update(-46_800, 26_100);
+    Map<String, List<Corner>> corners = new HashMap<>();
+    for (FakePiece piece : pieces(scene)) {
+      if (piece.occlusionCorner != null) {
+        corners.computeIfAbsent(piece.blockX + "," + piece.blockY, k -> new ArrayList<>())
+            .add(piece.occlusionCorner);
+      }
+    }
+    int total = 0;
+    for (FakePiece top : topsByPosition(scene).values()) {
+      int x = top.blockX;
+      int y = top.blockY;
+      int height = terrain.heightAt(x, y);
+      boolean backHigher = terrain.heightAt(x, y + 1) > height;
+      List<Corner> expected = new ArrayList<>();
+      if (terrain.heightAt(x - 1, y + 1) > height
+          && !backHigher
+          && terrain.heightAt(x - 1, y) <= height) {
+        expected.add(Corner.BACK_LEFT);
+      }
+      if (terrain.heightAt(x + 1, y + 1) > height
+          && !backHigher
+          && terrain.heightAt(x + 1, y) <= height) {
+        expected.add(Corner.BACK_RIGHT);
+      }
+      assertEquals(expected, corners.getOrDefault(x + "," + y, new ArrayList<>()), x + "," + y);
+      total += expected.size();
+    }
+    assertTrue(total > 0, "hilly ground has outside corners, so some corner occlusion is expected");
+  }
+
+  @Test
+  void everyTopIsLitBySunlightRightBeforeIt() {
+    TerrainScene scene = newScene();
+    scene.update(0, 0);
+    List<FakePiece> all = pieces(scene);
+    int sunlit = 0;
+    for (int i = 0; i < all.size(); i++) {
+      if (all.get(i).isSunlight) {
+        sunlit++;
+        FakePiece top = all.get(i + 1);
+        assertTrue(!top.isFace && !top.isOverlay(), "sunlight must come right before its top");
+        assertEquals(all.get(i).blockX, top.blockX);
+        assertEquals(all.get(i).blockY, top.blockY);
+      }
+    }
+    assertEquals(topsByPosition(scene).size(), sunlit);
   }
 
   @Test
@@ -375,9 +454,7 @@ class TerrainSceneTest {
     for (int i = 0; i < all.size(); i++) {
       if (all.get(i).rimSide != null) {
         int j = i + 1;
-        while (all.get(j).rimSide != null
-            || all.get(j).isShadow
-            || all.get(j).occlusionEdge != null) {
+        while (all.get(j).isOverlay()) {
           j++;
         }
         FakePiece top = all.get(j);

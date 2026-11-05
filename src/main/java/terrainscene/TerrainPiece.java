@@ -4,8 +4,8 @@ import game.gameModel.Renderable;
 import java.awt.Graphics2D;
 
 /**
- * One drawable piece of terrain (a tile top, face step, shadow, rim or occlusion strip) that also
- * says which image it shows.
+ * One drawable piece of terrain (a tile top, face step, sunlight or shade overlay, shadow, rim or
+ * occlusion) that also says which image it shows.
  *
  * <p>Knowing how to paint itself lets {@link ChunkPainter} put a piece straight into a chunk image
  * without creating a Swing component for each one. Pieces load their {@link

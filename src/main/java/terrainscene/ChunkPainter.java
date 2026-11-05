@@ -8,7 +8,8 @@ import terrain.Terrain;
 import terrain.TerrainCoordinates;
 
 /**
- * Paints a whole chunk of terrain (tiles, faces, rims, shadows and occlusion) into one image.
+ * Paints a whole chunk of terrain (tiles, faces, lighting, rims, shadows and occlusion) into one
+ * image.
  *
  * <p>Drawing one image per chunk instead of one Swing component per piece is what keeps the game
  * fast: about a dozen chunk images are on screen instead of hundreds of pieces. The image is

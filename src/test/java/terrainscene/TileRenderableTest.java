@@ -4,11 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import terrain.BlockType;
 
@@ -85,6 +87,55 @@ class TileRenderableTest {
     assertEquals(ShadowRenderable.SHADOW_COLOUR.getAlpha(), image.getRGB(10, 5) >>> 24);
     assertEquals(0, image.getRGB(10, 40) >>> 24);
     assertEquals(64, shadow.getTexture().getWidth());
+  }
+
+  @Test
+  void softShadowIsDarkestWhereAllLayersOverlapAndFainterWhereFewDo() {
+    Area band = new Area(new Rectangle2D.Double(0, 48, 64, 16));
+    Area wider = new Area(new Rectangle2D.Double(0, 32, 64, 32));
+    ShadowRenderable shadow = new ShadowRenderable(0, 0, 1, List.of(band, band, wider));
+    BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = image.createGraphics();
+    shadow.paintOnto(g, 0, 0, null);
+    g.dispose();
+    int full = image.getRGB(10, 5) >>> 24;
+    int faint = image.getRGB(10, 24) >>> 24;
+    assertTrue(Math.abs(full - ShadowRenderable.SHADOW_COLOUR.getAlpha()) <= 2, "all layers");
+    assertTrue(faint > 0 && faint < full, "one layer of three is fainter");
+    assertEquals(0, image.getRGB(10, 40) >>> 24);
+    assertTrue(shadow.getShape().equals(wider));
+    assertThrows(IllegalArgumentException.class, () -> new ShadowRenderable(0, 0, 1, List.of()));
+  }
+
+  @Test
+  void sunlightCoversItsTileTop() {
+    SunlightRenderable sunlight = new SunlightRenderable(2, 3, 4);
+    TileRenderable tile = new TileRenderable(2, 3, BlockType.GRASS, 4);
+    assertEquals(tile.getX(), sunlight.getX());
+    assertEquals(tile.getY(), sunlight.getY());
+    assertEquals(64, sunlight.getWidth());
+    assertEquals(64, sunlight.getHeight());
+    assertEquals(64, sunlight.getTexture().getWidth());
+    assertEquals(64, sunlight.getTexture().getHeight());
+  }
+
+  @Test
+  void cornerOcclusionSitsInItsBackCorner() {
+    int left = 2 * 64;
+    int bottom = 3 * 64 + 4 * STEP;
+    int size = CornerOcclusionRenderable.SIZE_PX;
+    CornerOcclusionRenderable backLeft =
+        new CornerOcclusionRenderable(2, 3, 4, Corner.BACK_LEFT);
+    assertEquals(left, backLeft.getX() - backLeft.getWidth() / 2);
+    assertEquals(bottom + 64 - size, backLeft.getY());
+    CornerOcclusionRenderable backRight =
+        new CornerOcclusionRenderable(2, 3, 4, Corner.BACK_RIGHT);
+    assertEquals(left + 64 - size, backRight.getX() - backRight.getWidth() / 2);
+    for (Corner corner : Corner.values()) {
+      CornerOcclusionRenderable occlusion = new CornerOcclusionRenderable(0, 0, 1, corner);
+      assertEquals(size, occlusion.getTexture().getWidth(), corner.name());
+      assertEquals(size, occlusion.getTexture().getHeight(), corner.name());
+    }
   }
 
   @Test

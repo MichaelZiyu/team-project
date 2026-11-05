@@ -5,12 +5,12 @@ import jswing.Texture;
 import terrain.TerrainCoordinates;
 
 /**
- * A see-through dark overlay on one face step, so the sides of terraces look a little darker than
- * the sunlit tops.
+ * A see-through cool overlay on one face step, so the sides of terraces, which face away from the
+ * sun, look darker and bluer than the sunlit tops.
  *
  * <p>Because it is an overlay rather than a darker copy of the face image, it works the same with
- * placeholder images and with real textures. The darkness (25%) lives in its image, {@code
- * terrain/faceshade/000-1.png}.
+ * placeholder images and with real textures. The colour (deep blue at about 30%) lives in its
+ * image, {@code terrain/faceshade/000-1.png}.
  */
 public final class FaceShadeRenderable implements TerrainPiece {
 

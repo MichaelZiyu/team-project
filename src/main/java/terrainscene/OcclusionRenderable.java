@@ -7,7 +7,9 @@ import terrain.TerrainCoordinates;
 
 /**
  * Ambient occlusion at the foot of a wall: a soft dark gradient on a tile's top along an edge
- * where it meets higher ground, darkest against the wall and fading toward the middle.
+ * where it meets higher ground, darkest against the wall and fading smoothly toward the middle.
+ * Where two walls meet, the two gradients overlap and the corner is darker still; {@link
+ * CornerOcclusionRenderable} covers corners where only a diagonal neighbour is higher.
  *
  * <p>It does not depend on the sun, so it shows which side is higher whatever the light. Only the
  * back, left and right edges get it; a higher tile in front would cover the front edge anyway.
