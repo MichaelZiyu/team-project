@@ -1,7 +1,7 @@
 package game;
 
 import daynight.DayClock;
-import daynight.SunPosition;
+import daynight.Sun;
 import file.FileManager;
 import game.gameModel.Entity;
 import game.gameModel.Player;
@@ -47,6 +47,9 @@ public class World implements Serializable {
 
     /** The time of day, saved with the world. Saves from before the day-night cycle have none. */
     private DayClock clock;
+
+    /** The world's one sun, following the clock; rebuilt from the clock, so never saved. */
+    private transient Sun sun;
 
     /** The day-night colour wash over the screen; rebuilt each run, so never saved. */
     private transient SkyTintLayer skyTint;
@@ -95,8 +98,7 @@ public class World implements Serializable {
                     TERRAIN_RENDER_DISTANCE);
             terrainLayer = new Scene(terrainScene);
         }
-        SunPosition sun = SunPosition.at(getClock().timeOfDay());
-        terrainScene.update(player.coordinate[0], player.coordinate[1], sun);
+        terrainScene.update(player.coordinate[0], player.coordinate[1], getSun().position());
     }
 
     /** Creates the sky tint on first use (also after loading a save) and sets it for the time of day. */
@@ -119,6 +121,19 @@ public class World implements Serializable {
             clock = DayClock.forRealTime(DAY_LENGTH_SECONDS, GameController.FRAME_TIME);
         }
         return clock;
+    }
+
+    /**
+     * Returns the world's sun. Everything lit by the sun (terrain, character shadows) should use
+     * this one, so they all agree on where it is.
+     *
+     * @return the sun, which follows this world's clock
+     */
+    public Sun getSun() {
+        if (sun == null) {
+            sun = new Sun(getClock());
+        }
+        return sun;
     }
 
     public void takeCommand(String command) {
