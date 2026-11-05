@@ -1,4 +1,7 @@
 package game.gameModel;
 
-public class BackGround {
+public class BackGround implements Renderable{
+
+    public BackGround
+
 }
