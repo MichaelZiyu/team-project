@@ -14,16 +14,14 @@ import jswing.Renderer;
 public class GameController {
 
     private static World world;
-    private static FileManager file;
     public static final double FRAME_TIME = 1.0 / 60.0;
     private static final JPanel mainPanel = StateManager.gameState.panel;
     private static Renderer renderer;
 
-    public static void initializeGame(World world, FileManager file) {
+    public static void initializeGame(World world) {
         GameController.world = world;
         world.pause = false;
         world.loadTexture();
-        GameController.file = file;
         GameController.renderer = new Renderer(mainPanel);
     }
 
