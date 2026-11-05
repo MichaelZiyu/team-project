@@ -80,7 +80,7 @@ public class PanelManager {
             String selected = (String) list.getSelectedItem();
             FileManager file = new FileManager(selected);
             World world = file.loadSave();
-            GameController.initializeGame(world, file);
+            GameController.initializeGame(world);
             PanelStateController.transition("load");
         });
 
