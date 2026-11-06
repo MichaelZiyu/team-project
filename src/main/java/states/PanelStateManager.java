@@ -16,7 +16,4 @@ public class StateManager {
     public static final PanelState loadMenuState = new PanelState("loadMenuState", PanelManager.loadMenuPanel);
     public static final PanelState gameState = new PanelState("gameState", PanelManager.gamePanel);
 
-    public static final PanelState pauseState = new PanelState("pauseState", PanelManager.pausePanel);
-
-
 }
