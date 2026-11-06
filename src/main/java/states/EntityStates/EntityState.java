@@ -16,7 +16,7 @@ public abstract class EntityState implements Renderable, Serializable {
     public String name;
     public Entity entity;
 
-    transient Texture texture;
+    protected transient Texture texture;
 
     private int tickCount = 0;
 
@@ -38,11 +38,8 @@ public abstract class EntityState implements Renderable, Serializable {
     public void resetTickCount() {
         this.tickCount = 0;
     }
-
-    //TODO change to abstract method
-    public void loadTexture(String texturePath) {
-        this.texture = new Texture(texturePath + "/" + name);
-    }
+    
+    public abstract void loadTexture(String texturePath);
 
     public String toString() {
         return this.name;

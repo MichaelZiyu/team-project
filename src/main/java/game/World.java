@@ -72,6 +72,9 @@ public class World implements Serializable {
         this.map = new GameMap(seed, player);
         this.entities.add(player);
 
+        //TEMP:test case
+        entities.add(new Player("player2", view));
+
         initialize();
     }
 
@@ -85,6 +88,7 @@ public class World implements Serializable {
      */
     public void initialize() {
         loadTexture();
+        registerPhysicsSystem();
         this.map = new GameMap(seed, player);
         this.background = new BackGround(player, view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
         initializeSceneLayers();
@@ -103,15 +107,24 @@ public class World implements Serializable {
 
                 // maintain these two scenes simultaneously.
                 // PhysicsBody is body attribute from each entity in entities
-                new Scene("entities", List.of(player)), // character movement textures, status effect textures
-                new Scene("physicsbody", List.of(player.body)), // collision box
+                new Scene("entities", entities), // character movement textures, status effect textures
+                new Scene("physicsbody", PhysicsSystem.bodies), // collision box
 
                 new Scene("interactable"), // cave
                 new Scene("terrain", map), // terrain map
                 new Scene("Background", List.of(background)) // background picture
         );
-        
 
+    }
+
+    /**
+     * register all entities to physics system
+     */
+    private void registerPhysicsSystem() {
+        PhysicsSystem.clear();
+        for (Entity entity : entities) {
+            entity.registerPhysicsSystem();
+        }
     }
 
     /**
@@ -150,9 +163,7 @@ public class World implements Serializable {
             default ->
                 CommandProcessor.handle(command);
         }
-        for (Entity entity : entities) {
-            entity.handleCommand();
-        }
+        player.handleCommand();
     }
 
     /**

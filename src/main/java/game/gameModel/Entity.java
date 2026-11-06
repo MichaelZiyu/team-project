@@ -3,6 +3,7 @@ package game.gameModel;
 import game.WorldView;
 import jswing.Texture;
 import states.EntityStates.EntityStateManager;
+import testpackage.Test;
 
 import java.io.Serializable;
 
@@ -14,6 +15,7 @@ public abstract class Entity implements Serializable, Renderable{
 
     public int hp, attack, maxHp, speed;
     String name;
+    public static final double RUN_COEFFICIENT = 3;
 
     public PhysicsBody body;
 
@@ -32,11 +34,16 @@ public abstract class Entity implements Serializable, Renderable{
         this.speed = speed;
         this.body = new PhysicsBody(width, height);
         loadTexture();
+        registerPhysicsSystem();
     }
 
     public void tick() {
         body.tick();
         stateManager.tick();
+    }
+
+    public void registerPhysicsSystem() {
+        PhysicsSystem.addBody(body);
     }
 
     @Override

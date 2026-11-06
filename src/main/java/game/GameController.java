@@ -9,6 +9,7 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
 import jswing.Renderer;
+import testpackage.Test;
 
 public class GameController {
 
@@ -25,17 +26,15 @@ public class GameController {
 
     public static void run() {
         InputBuffer input = new InputBuffer();
+        CommandProcessor processor = new CommandProcessor(input);
 
         while (!world.end) {
 
             long startTime = System.nanoTime();
 
             // provide world with filtered commands from input event captured during current frame
-            for (AWTEvent event : input.getInput()) {
-                String command = CommandProcessor.translate(event);
-                if (command != null) {
-                    world.handleCommand(command);
-                }
+            for (String command : processor.getInput()) {
+                world.handleCommand(command);
             }
 
             world.tick();

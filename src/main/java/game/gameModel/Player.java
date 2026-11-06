@@ -14,8 +14,7 @@ public class Player extends Entity {
     private static final int ATTACK = 1;
     private static final int MAX_HP = 20;
     private static final int SPEED = 120;
-    private static final double RUN_COEFFICIENT = 3;
-    private static final int PLAYER_BODY_WIDTH = 64;
+    private static final int PLAYER_BODY_WIDTH = 40;
     private static final int PLAYER_BODY_HEIGHT = 64;
 
     public enum PlayerCommand {
@@ -42,18 +41,6 @@ public class Player extends Entity {
         // Other
         INTERACT
     }
-
-    private static final Set<PlayerCommand> directionCommands = new HashSet<>(Set.of(
-            PlayerCommand.MOVE_FORWARD,
-            PlayerCommand.MOVE_BACKWARD,
-            PlayerCommand.MOVE_LEFT,
-            PlayerCommand.MOVE_RIGHT,
-            PlayerCommand.CANCEL_FORWARD,
-            PlayerCommand.CANCEL_BACKWARD,
-            PlayerCommand.CANCEL_LEFT,
-            PlayerCommand.CANCEL_RIGHT
-    ));
-
 
     public Player(String name, WorldView view) {
         super(ATTACK, MAX_HP, name, view, SPEED, PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT);

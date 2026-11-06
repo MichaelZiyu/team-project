@@ -2,6 +2,7 @@ package states.EntityStates.ActionStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
+import jswing.Texture;
 
 public class RestState extends ActionState {
 
@@ -23,5 +24,13 @@ public class RestState extends ActionState {
     }
 
     @Override
-    public void apply() {}
+    public void apply() {
+        entity.body.setVelocityX(0);
+        entity.body.setVelocityY(0);
+    }
+
+    @Override
+    public void loadTexture(String texturePath) {
+        this.texture = new Texture(texturePath + "/" + name);
+    }
 }

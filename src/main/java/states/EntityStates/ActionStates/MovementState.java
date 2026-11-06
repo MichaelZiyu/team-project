@@ -14,13 +14,14 @@ public class MovementState extends ActionState{
 
     private String currentws, previousws, currentad, previousad, newest;
 
+    private boolean run = false;
+
     public MovementState(Entity entity) {
         super("movement", entity);
     }
 
     @Override
     public String handleCommand(Player.PlayerCommand command) {
-        Test.print(command);
         switch (command) {
             case MOVE_FORWARD -> setDirect("w");
             case MOVE_BACKWARD -> setDirect("s");
@@ -37,6 +38,8 @@ public class MovementState extends ActionState{
                 currentad = null;
                 return "attack";
             }
+            case RUN -> this.run = true;
+            case CANCEL_RUN -> this.run = false;
         }
 
         if (currentws != null || currentad != null) return "movement";
@@ -45,12 +48,16 @@ public class MovementState extends ActionState{
 
     private void setDirect(String direction) {
         if ("w".equals(direction) || "s".equals(direction)) {
-            previousws = currentws;
-            currentws = direction;
+            if (!(direction.equals(currentws))) {
+                previousws = currentws;
+                currentws = direction;
+            }
             this.newest = "ws";
         } else {
-            previousad = currentad;
-            currentad = direction;
+            if (!(direction.equals(currentad))) {
+                previousad = currentad;
+                currentad = direction;
+            }
             this.newest = "ad";
         }
     }
@@ -109,6 +116,9 @@ public class MovementState extends ActionState{
             entity.body.setVelocityX(entity.speed);
         else
             entity.body.setVelocityX(0);
+
+        if (run) entity.body.setRunCoefficient(Entity.RUN_COEFFICIENT);
+        else entity.body.setRunCoefficient(1);
     }
 
     @Override
