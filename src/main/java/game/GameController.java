@@ -46,8 +46,8 @@ public class GameController {
                 SwingUtilities.invokeAndWait(() -> {
                     renderer.render(
                             world.render(),
-                            (int) world.getPlayer().coordinate[0],
-                            (int) world.getPlayer().coordinate[1]
+                            (int) world.getPlayer().body.coordinate[0],
+                            (int) world.getPlayer().body.coordinate[1]
                     );
                 });
             } catch (InterruptedException e) {

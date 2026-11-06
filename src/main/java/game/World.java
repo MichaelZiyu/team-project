@@ -107,8 +107,7 @@ public class World implements Serializable {
                 new Scene("gameUI") // pause menu
         );
         
-        //TEMP:
-        sceneLayers.get(0).setVisible(false);
+
     }
 
     /**

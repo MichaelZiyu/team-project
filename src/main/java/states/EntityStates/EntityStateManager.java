@@ -84,9 +84,9 @@ public class EntityStateManager implements Serializable {
         currentActionStates.set(0, nextState);
     }
 
-    public Texture getTexture() {
-
-    }
+//    public Texture getTexture() {
+//
+//    }
 
 
 

@@ -61,7 +61,9 @@ public abstract class Entity implements Serializable, Renderable{
 
     @Override
     public Texture getTexture() {
-        return stateManager.getTexture();
+        //TODO
+//        return stateManager.getTexture();
+        return null;
     }
 
     public abstract void loadTexture();

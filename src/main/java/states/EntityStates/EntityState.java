@@ -62,11 +62,11 @@ public class EntityState implements Renderable, Serializable {
 
     @Override
     public int getX() {
-        return (int) entity.coordinate[0];
+        return (int) entity.body.coordinate[0];
     }
 
     @Override
     public int getY() {
-        return (int) entity.coordinate[1];
+        return (int) entity.body.coordinate[1];
     }
 }
