@@ -26,6 +26,6 @@ public class GameMap implements Iterable<Renderable>{
 
     @Override
     public Iterator<Renderable> iterator() {
-        return Collections.emptyIterator();
+        return terrain.iterator();
     }
 }

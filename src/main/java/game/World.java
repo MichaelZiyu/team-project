@@ -3,6 +3,7 @@ package game;
 import file.FileManager;
 import game.gameModel.*;
 import jswing.WindowManager;
+import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -85,7 +86,7 @@ public class World implements Serializable {
     public void initialize() {
         loadTexture();
         this.map = new GameMap(seed, player);
-        this.background = new BackGround(view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
+        this.background = new BackGround(player, view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
         initializeSceneLayers();
     }
 
@@ -105,6 +106,9 @@ public class World implements Serializable {
                 new Scene("filters"), // such as weather, sunlight
                 new Scene("gameUI") // pause menu
         );
+        
+        //TEMP:
+        sceneLayers.get(0).setVisible(false);
     }
 
     /**

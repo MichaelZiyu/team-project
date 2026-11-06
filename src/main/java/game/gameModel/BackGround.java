@@ -7,13 +7,15 @@ public class BackGround implements Renderable{
 
     private WorldView view;
     private int windowWidth, windowHeight;
+    private Player player;
 
     private Texture texture;
 
-    public BackGround(WorldView view, int windowWidth, int windowHeight) {
+    public BackGround(Player player, WorldView view, int windowWidth, int windowHeight) {
         this.view = view;
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
+        this.player = player;
 
         this.texture = new Texture(view + "/background");
     }
@@ -25,12 +27,12 @@ public class BackGround implements Renderable{
 
     @Override
     public int getX() {
-        return windowWidth / 2;
+        return (int) player.coordinate[0];
     }
 
     @Override
     public int getY() {
-        return - (windowHeight / 2);
+        return (int) player.coordinate[1] - (windowHeight / 2);
     }
 
     @Override

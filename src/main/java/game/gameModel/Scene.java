@@ -41,4 +41,8 @@ public class Scene {
     public String toString() {
         return name;
     }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
 }
