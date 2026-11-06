@@ -1,18 +1,26 @@
 package game.gameModel;
 
 import game.GameController;
+import jswing.Texture;
 import testpackage.Test;
 
 import java.io.Serializable;
 
-public class PhysicsBody implements Serializable {
+public class PhysicsBody implements Serializable, Renderable {
     private static final long serialVersionUID = 1L;
 
     public double[] coordinate, velocity, acceleration;
 
+    private int width, height;
+
+    private Texture texture;
+
     private double runCoefficient = 1.0;
 
-    public PhysicsBody() {
+    public PhysicsBody(int width, int height) {
+        this.width = width;
+        this.height = height;
+        this.texture = new Texture(width, height);
         this.coordinate = new double[]{0.0, 0.0};
         this.velocity = new double[]{0.0, 0.0};
         this.acceleration = new double[]{0.0, 0.0};
@@ -52,4 +60,30 @@ public class PhysicsBody implements Serializable {
             velocity[i] = v;
         }
     }
+
+    @Override
+    public int getX() {
+        return (int) coordinate[0];
+    }
+
+    @Override
+    public int getY() {
+        return (int) coordinate[1];
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
+    }
+
+    @Override
+    public Texture getTexture() {
+        return texture;
+    }
+
 }

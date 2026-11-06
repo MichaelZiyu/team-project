@@ -15,6 +15,8 @@ public class Player extends Entity {
     private static final int MAX_HP = 20;
     private static final int SPEED = 120;
     private static final double RUN_COEFFICIENT = 3;
+    private static final int PLAYER_BODY_WIDTH = 64;
+    private static final int PLAYER_BODY_HEIGHT = 64;
 
     public enum PlayerCommand {
         // Movements
@@ -54,7 +56,7 @@ public class Player extends Entity {
 
 
     public Player(String name, WorldView view) {
-        super(ATTACK, MAX_HP, name, view, SPEED);
+        super(ATTACK, MAX_HP, name, view, SPEED, PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT);
     }
 
     @Override
@@ -71,13 +73,6 @@ public class Player extends Entity {
         }
         stateManager.apply();
     }
-
-    public void tick() {
-        super.tick();
-        stateManager.tick();
-    }
-
-
 
 
 }

@@ -27,12 +27,12 @@ public class BackGround implements Renderable{
 
     @Override
     public int getX() {
-        return (int) player.coordinate[0];
+        return (int) player.body.coordinate[0];
     }
 
     @Override
     public int getY() {
-        return (int) player.coordinate[1] - (windowHeight / 2);
+        return (int) player.body.coordinate[1] - (windowHeight / 2);
     }
 
     @Override

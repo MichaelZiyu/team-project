@@ -1,7 +1,7 @@
 package game;
 
 import states.PanelStateController;
-import states.StateManager;
+import states.PanelStateManager;
 import system.InputBuffer;
 
 import javax.swing.*;
@@ -14,7 +14,7 @@ public class GameController {
 
     private static World world;
     public static final double FRAME_TIME = 1.0 / 60.0;
-    private static final JPanel mainPanel = StateManager.gameState.panel;
+    private static final JPanel mainPanel = PanelStateManager.gameState.panel;
     private static Renderer renderer;
 
     public static void initializeGame(World world) {

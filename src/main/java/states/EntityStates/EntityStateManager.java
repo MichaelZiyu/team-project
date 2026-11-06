@@ -2,6 +2,7 @@ package states.EntityStates;
 
 import game.gameModel.Entity;
 import game.gameModel.Player;
+import jswing.Texture;
 import states.EntityStates.ActionStates.*;
 import states.EntityStates.StatusStates.StatusState;
 
@@ -16,14 +17,14 @@ public class EntityStateManager implements Serializable {
     public final Set<StatusState> currentStatusStates = new HashSet<>();
 
     public final Map<String, ActionState> actionStates = new HashMap<>();
-    public final List<ActionState> currentActionState = new ArrayList<>();
+    public final List<ActionState> currentActionStates = new ArrayList<>();
 
     private Entity entity;
 
     public EntityStateManager(Entity entity) {
         this.entity = entity;
         register();
-        this.currentActionState.add(actionStates.get("rest"));
+        this.currentActionStates.add(actionStates.get("rest"));
     }
 
     private void register() {
@@ -63,7 +64,9 @@ public class EntityStateManager implements Serializable {
                 status.resetTickCount();
             }
         }
-        currentActionState.get(0).tick();
+        for (ActionState state : currentActionStates) {
+            state.tick();
+        }
     }
 
     public void apply() {
@@ -76,9 +79,13 @@ public class EntityStateManager implements Serializable {
     }
 
     public void handleCommand(Player.PlayerCommand command) {
-        ActionState nextState = actionStates.get(currentActionState.get(0).handleCommand(command));
-        if (nextState != currentActionState.get(0)) currentActionState.get(0).resetTickCount();
-        currentActionState.set(0, nextState);
+        ActionState nextState = actionStates.get(currentActionStates.get(0).handleCommand(command));
+        if (nextState != currentActionStates.get(0)) currentActionStates.get(0).resetTickCount();
+        currentActionStates.set(0, nextState);
+    }
+
+    public Texture getTexture() {
+
     }
 
 

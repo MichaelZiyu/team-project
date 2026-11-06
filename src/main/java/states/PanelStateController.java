@@ -26,7 +26,7 @@ public class PanelStateController {
     static final Map<String, PanelState> registry = new HashMap<>();
 
     /** current state of the game*/
-    private static PanelState state = StateManager.startMenuState;
+    private static PanelState state = PanelStateManager.startMenuState;
 
     /** current JFrame window*/
     private static final WindowManager window = new WindowManager();
@@ -51,7 +51,7 @@ public class PanelStateController {
         PanelStateController.state = state.transition(input);
         if (state.panel == null) System.exit(0);
         setWindow();
-        if (state == StateManager.gameState) {
+        if (state == PanelStateManager.gameState) {
             GameController.start();
         }
     }

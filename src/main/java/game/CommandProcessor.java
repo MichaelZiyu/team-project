@@ -34,7 +34,6 @@ public class CommandProcessor {
         if (c != null) commandQueue.add(c);
     }
 
-
     public static String translate(AWTEvent event) {
         if (event instanceof KeyEvent keyEvent) {
             String key = KeyEvent.getKeyText(keyEvent.getKeyCode()).toLowerCase();
