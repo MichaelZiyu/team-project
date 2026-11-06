@@ -10,8 +10,7 @@ import java.util.Set;
  * Represents a collection of Renderable objects where the order to render them does not matter.
  * Defines what it means to be a layer in 2d game.
  */
-public class Scene implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Scene {
 
     private static final Iterable<Renderable> EMPTY = Collections::emptyIterator;
 

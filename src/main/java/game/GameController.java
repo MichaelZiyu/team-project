@@ -1,6 +1,5 @@
 package game;
 
-import file.FileManager;
 import states.PanelStateController;
 import states.StateManager;
 import system.InputBuffer;
@@ -20,15 +19,14 @@ public class GameController {
 
     public static void initializeGame(World world) {
         GameController.world = world;
-        world.pause = false;
-        world.loadTexture();
+        world.initialize();
         GameController.renderer = new Renderer(mainPanel);
     }
 
     public static void run() {
         InputBuffer input = new InputBuffer();
 
-        while (!world.pause) {
+        while (!world.end) {
 
             long startTime = System.nanoTime();
 
