@@ -61,6 +61,7 @@ public class Player extends Entity {
 
     @Override
     public void loadTexture() {
+        body.loadTexture();
         stateManager.loadTexture(view + "/player");
     }
 

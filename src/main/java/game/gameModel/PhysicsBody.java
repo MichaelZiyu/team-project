@@ -13,32 +13,32 @@ public class PhysicsBody implements Serializable, Renderable {
 
     private int width, height;
 
-    private Texture texture;
+    private transient Texture texture;
 
     private double runCoefficient = 1.0;
 
     public PhysicsBody(int width, int height) {
         this.width = width;
         this.height = height;
-        this.texture = new Texture(width, height);
+        loadTexture();
         this.coordinate = new double[]{0.0, 0.0};
         this.velocity = new double[]{0.0, 0.0};
         this.acceleration = new double[]{0.0, 0.0};
     }
 
-    void setVelocityX(double speed) {
+    public void setVelocityX(double speed) {
         velocity[0] = speed;
     }
 
-    void setVelocityY(double speed) {
+    public void setVelocityY(double speed) {
         velocity[1] = speed;
     }
 
-    void setRunCoefficient(double multiplier) {
+    public void setRunCoefficient(double multiplier) {
         runCoefficient = multiplier;
     }
 
-    void resetRunCoefficient() {
+    public void resetRunCoefficient() {
         runCoefficient = 1;
     }
 
@@ -59,6 +59,10 @@ public class PhysicsBody implements Serializable, Renderable {
             coordinate[i] = p;
             velocity[i] = v;
         }
+    }
+
+    public void loadTexture() {
+        this.texture = new Texture(width, height);
     }
 
     @Override

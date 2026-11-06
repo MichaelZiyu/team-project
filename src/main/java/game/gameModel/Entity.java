@@ -12,7 +12,7 @@ import java.io.Serializable;
 public abstract class Entity implements Serializable, Renderable{
     private static final long serialVersionUID = 1L;
 
-    int hp, attack, maxHp, speed;
+    public int hp, attack, maxHp, speed;
     String name;
 
     public PhysicsBody body;
@@ -61,9 +61,7 @@ public abstract class Entity implements Serializable, Renderable{
 
     @Override
     public Texture getTexture() {
-        //TODO
-//        return stateManager.getTexture();
-        return null;
+        return stateManager.getTexture();
     }
 
     public abstract void loadTexture();

@@ -97,14 +97,18 @@ public class World implements Serializable {
      */
     private void initializeSceneLayers() {
         this.sceneLayers = List.of(
-                new Scene("Background", List.of(background)), // background picture
-                new Scene("terrain", map), // terrain map
-                new Scene("interactable"), // cave
-                new Scene("physicsbody"), // collision box
-                new Scene("entities"), // characters, status effect
-                new Scene("entityStats"), // hp
+                new Scene("gameUI"), // pause menu
                 new Scene("filters"), // such as weather, sunlight
-                new Scene("gameUI") // pause menu
+                new Scene("entityStats"), // hp
+
+                // maintain these two scenes simultaneously.
+                // PhysicsBody is body attribute from each entity in entities
+                new Scene("entities", List.of(player)), // character movement textures, status effect textures
+                new Scene("physicsbody", List.of(player.body)), // collision box
+
+                new Scene("interactable"), // cave
+                new Scene("terrain", map), // terrain map
+                new Scene("Background", List.of(background)) // background picture
         );
         
 

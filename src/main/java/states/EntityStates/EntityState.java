@@ -10,11 +10,11 @@ import java.io.Serializable;
  * Represents a certain state of an Entity, can be walking, stunning,...
  * Stores tickable sprite textures
  */
-public class EntityState implements Renderable, Serializable {
+public abstract class EntityState implements Renderable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    String name;
-    Entity entity;
+    public String name;
+    public Entity entity;
 
     transient Texture texture;
 
@@ -33,10 +33,13 @@ public class EntityState implements Renderable, Serializable {
         texture.tick();
     }
 
+    public abstract void apply();
+
     public void resetTickCount() {
         this.tickCount = 0;
     }
 
+    //TODO change to abstract method
     public void loadTexture(String texturePath) {
         this.texture = new Texture(texturePath + "/" + name);
     }

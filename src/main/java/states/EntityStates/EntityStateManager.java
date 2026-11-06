@@ -5,6 +5,7 @@ import game.gameModel.Player;
 import jswing.Texture;
 import states.EntityStates.ActionStates.*;
 import states.EntityStates.StatusStates.StatusState;
+import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.*;
@@ -17,24 +18,20 @@ public class EntityStateManager implements Serializable {
     public final Set<StatusState> currentStatusStates = new HashSet<>();
 
     public final Map<String, ActionState> actionStates = new HashMap<>();
-    public final List<ActionState> currentActionStates = new ArrayList<>();
+    public ActionState currentActionState;
 
     private Entity entity;
 
     public EntityStateManager(Entity entity) {
         this.entity = entity;
         register();
-        this.currentActionStates.add(actionStates.get("rest"));
+        this.currentActionState = actionStates.get("rest");
     }
 
     private void register() {
         actionStates.putAll(Map.of(
                 "rest", new RestState(entity),
-                "moveleft", new MoveLeftState(entity),
-                "moveforward", new MoveForwardState(entity),
-                "moveright", new MoveRightState(entity),
-                "movebackward", new MoveBackwardState(entity),
-                "runleft", new RunLeftState(entity)
+                "movement", new MovementState(entity)
         ));
         statusStates.putAll(Map.of(
                 //TODO status states
@@ -64,29 +61,34 @@ public class EntityStateManager implements Serializable {
                 status.resetTickCount();
             }
         }
-        for (ActionState state : currentActionStates) {
-            state.tick();
-        }
+        currentActionState.tick();
     }
 
     public void apply() {
-//        for (ActionState state : currentActionStates) {
-//            state.apply();
-//        }
+        currentActionState.apply();
         for (StatusState status : currentStatusStates) {
             status.apply();
         }
     }
 
     public void handleCommand(Player.PlayerCommand command) {
-        ActionState nextState = actionStates.get(currentActionStates.get(0).handleCommand(command));
-        if (nextState != currentActionStates.get(0)) currentActionStates.get(0).resetTickCount();
-        currentActionStates.set(0, nextState);
+        String[] transition = currentActionState.handleCommand(command).split("-", 2);
+
+        ActionState nextState = actionStates.get(transition[0]);
+
+        if (nextState != currentActionState) {
+            currentActionState.resetTickCount();
+            currentActionState = nextState;
+        }
+
+        if (transition.length > 1) {
+            nextState.handleCommand(Player.PlayerCommand.valueOf(transition[1]));
+        }
     }
 
-//    public Texture getTexture() {
-//
-//    }
+    public Texture getTexture() {
+        return currentActionState.getTexture();
+    }
 
 
 

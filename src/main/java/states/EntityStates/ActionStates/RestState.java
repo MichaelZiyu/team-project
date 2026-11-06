@@ -12,21 +12,16 @@ public class RestState extends ActionState {
     @Override
     public String handleCommand(Player.PlayerCommand command) {
         switch (command) {
-            case Player.PlayerCommand.MOVE_LEFT -> {
-                return "moveleft";
-            }
-            case Player.PlayerCommand.MOVE_FORWARD -> {
-                return "moveforward";
-            }
-            case Player.PlayerCommand.MOVE_RIGHT -> {
-                return "moveright";
-            }
-            case Player.PlayerCommand.MOVE_BACKWARD -> {
-                return "movebackward";
-            }
+            case Player.PlayerCommand.MOVE_FORWARD,
+                 Player.PlayerCommand.MOVE_BACKWARD,
+                 Player.PlayerCommand.MOVE_LEFT,
+                 Player.PlayerCommand.MOVE_RIGHT -> {return "movement-" + command.name();}
             default -> {
                 return "rest";
             }
         }
     }
+
+    @Override
+    public void apply() {}
 }
