@@ -21,7 +21,7 @@ public class Renderer {
         panel.removeAll();
 
         for (Renderable renderable : renderables) {
-            JLabel component = renderable.getTexture().getContent();
+            Component component = renderable.getTexture().getContent();
 
             int width = renderable.getWidth();
             int height = renderable.getHeight();
@@ -39,26 +39,13 @@ public class Renderer {
             panel.add(component);
         }
 
-        // TEMP: Camera transformation test
-        int debugSize = 32;
+        // Debug: display player position
+        camera.transform(playerX, playerY, playerX, playerY, 5, 5);
 
-        camera.transform(
-                playerX, playerY,
-                0, 0,
-                debugSize, debugSize
-        );
-
-        JLabel debugMarker = new JLabel();
-        debugMarker.setOpaque(true);
-        debugMarker.setBackground(Color.RED);
-        debugMarker.setBounds(
-                camera.x,
-                camera.y,
-                debugSize,
-                debugSize
-        );
-
-        panel.add(debugMarker);
+        JPanel debugPoint = new JPanel();
+        debugPoint.setBackground(Color.BLACK);
+        debugPoint.setBounds(camera.x, camera.y, 5, 5);
+        panel.add(debugPoint);
 
         panel.revalidate();
         panel.repaint();

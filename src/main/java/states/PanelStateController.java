@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Controller of all PanelState, including title menus and game UIs.
+ * Controller of all PanelState, including title menus and game UIs. Controls the entire game as a finite state machine.
  * Controls all page transitions by providing static and public attributes and methods
  */
 public class PanelStateController {
@@ -20,18 +20,19 @@ public class PanelStateController {
      * it requires a registration.
      * When a PanelState object is initialized, it will store its own nameMap and register itself to registry field below.
      * So when a transition occurs, a State access its own nameMap to get the name of next state, then use registry
-     * to return the next state.
+     * to return the next state as a PanelState object.
      */
     static final Map<String, Map<String, String>> nameMap = FileManager.loadtransition();
     static final Map<String, PanelState> registry = new HashMap<>();
 
-    /** current state of the game*/
-    private static PanelState state = StateManager.startMenuState;
+    /** current state of the entire game*/
+    private static PanelState state = PanelStateManager.startMenuState;
 
     /** current JFrame window*/
     private static final WindowManager window = new WindowManager();
 
 
+    /** start the game by setting the default game panel, start menu panel, to current window.*/
     public static void start() {
         setWindow();
     }
@@ -51,12 +52,12 @@ public class PanelStateController {
         PanelStateController.state = state.transition(input);
         if (state.panel == null) System.exit(0);
         setWindow();
-        if (state == StateManager.gameState) {
+        if (state == PanelStateManager.gameState) {
             GameController.start();
         }
     }
 
-
+    /**register provided name and panel states to registry*/
     public static void register(String name, PanelState state) {
         registry.put(name, state);
     }

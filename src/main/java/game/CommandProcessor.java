@@ -1,6 +1,7 @@
 package game;
 
 import game.gameModel.Player;
+import system.InputBuffer;
 import testpackage.Test;
 
 import java.awt.*;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CommandProcessor {
 
     public static final Queue<Player.PlayerCommand> commandQueue = new ConcurrentLinkedQueue<>();
+    private InputBuffer input;
 
     // a map from string command to PlayerCommand. Commands controlling moving directions are specially handled by
     // player.movementManager
@@ -29,11 +31,22 @@ public class CommandProcessor {
             Map.entry("-shift", Player.PlayerCommand.CANCEL_RUN)
     ));
 
+    public CommandProcessor(InputBuffer input) {
+        this.input = input;
+    }
+
+    public Iterable<String> getInput() {
+        return input.getInput()
+                .stream()
+                .map(CommandProcessor::translate)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     public static void handle(String command) {
         Player.PlayerCommand c = commandMap.get(command);
         if (c != null) commandQueue.add(c);
     }
-
 
     public static String translate(AWTEvent event) {
         if (event instanceof KeyEvent keyEvent) {

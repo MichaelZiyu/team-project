@@ -4,14 +4,13 @@ import javax.swing.*;
 import java.util.Map;
 
 /**
- * TitleState represents states that are in the title pages.
+ * Any game state that contains a panel to show.
  */
 public class PanelState {
 
     /** transition map represented by String commands and state names*/
     private Map<String, String> nameMap;
 
-    /** state name*/
     private String name;
 
     public JPanel panel;

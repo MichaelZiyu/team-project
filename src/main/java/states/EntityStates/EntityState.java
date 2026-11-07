@@ -10,18 +10,16 @@ import java.io.Serializable;
  * Represents a certain state of an Entity, can be walking, stunning,...
  * Stores tickable sprite textures
  */
-public class EntityState implements Renderable, Serializable {
+public abstract class EntityState implements Renderable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    String name;
-    Entity entity;
+    public Entity entity;
 
-    transient Texture texture;
+    protected transient Texture texture;
 
     private int tickCount = 0;
 
-    public EntityState(String name, Entity entity) {
-        this.name = name;
+    public EntityState(Entity entity) {
         this.entity = entity;
     }
 
@@ -33,17 +31,13 @@ public class EntityState implements Renderable, Serializable {
         texture.tick();
     }
 
+    public abstract void apply();
+
     public void resetTickCount() {
         this.tickCount = 0;
     }
 
-    public void loadTexture(String texturePath) {
-        this.texture = new Texture(texturePath + "/" + name);
-    }
-
-    public String toString() {
-        return this.name;
-    }
+    public abstract void loadTexture(String texturePath);
 
     @Override
     public Texture getTexture() {
@@ -52,21 +46,21 @@ public class EntityState implements Renderable, Serializable {
 
     @Override
     public int getWidth() {
-        return texture.getWidth();
+        return getTexture().getWidth();
     }
 
     @Override
     public int getHeight() {
-        return texture.getHeight();
+        return getTexture().getHeight();
     }
 
     @Override
     public int getX() {
-        return (int) entity.coordinate[0];
+        return (int) entity.body.coordinate[0];
     }
 
     @Override
     public int getY() {
-        return (int) entity.coordinate[1];
+        return (int) entity.body.coordinate[1];
     }
 }

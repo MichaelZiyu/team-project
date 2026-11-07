@@ -1,8 +1,7 @@
 package game;
 
-import file.FileManager;
 import states.PanelStateController;
-import states.StateManager;
+import states.PanelStateManager;
 import system.InputBuffer;
 
 import javax.swing.*;
@@ -10,34 +9,32 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
 import jswing.Renderer;
+import testpackage.Test;
 
 public class GameController {
 
     private static World world;
     public static final double FRAME_TIME = 1.0 / 60.0;
-    private static final JPanel mainPanel = StateManager.gameState.panel;
+    private static final JPanel mainPanel = PanelStateManager.gameState.panel;
     private static Renderer renderer;
 
     public static void initializeGame(World world) {
         GameController.world = world;
-        world.pause = false;
-        world.loadTexture();
+        world.initialize();
         GameController.renderer = new Renderer(mainPanel);
     }
 
     public static void run() {
         InputBuffer input = new InputBuffer();
+        CommandProcessor processor = new CommandProcessor(input);
 
-        while (!world.pause) {
+        while (!world.end) {
 
             long startTime = System.nanoTime();
 
             // provide world with filtered commands from input event captured during current frame
-            for (AWTEvent event : input.getInput()) {
-                String command = CommandProcessor.translate(event);
-                if (command != null) {
-                    world.handleCommand(command);
-                }
+            for (String command : processor.getInput()) {
+                world.handleCommand(command);
             }
 
             world.tick();
@@ -48,8 +45,8 @@ public class GameController {
                 SwingUtilities.invokeAndWait(() -> {
                     renderer.render(
                             world.render(),
-                            (int) world.getPlayer().coordinate[0],
-                            (int) world.getPlayer().coordinate[1]
+                            (int) world.getPlayer().body.coordinate[0],
+                            (int) world.getPlayer().body.coordinate[1]
                     );
                 });
             } catch (InterruptedException e) {

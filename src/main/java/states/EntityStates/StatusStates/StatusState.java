@@ -5,9 +5,7 @@ import states.EntityStates.EntityState;
 
 public abstract class StatusState extends EntityState {
 
-    public StatusState(String name, Entity entity) {
-        super(name, entity);
+    public StatusState(Entity entity) {
+        super(entity);
     }
-
-    public abstract void apply();
 }

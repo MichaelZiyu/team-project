@@ -4,7 +4,9 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-//TODO this class is temporarily useless
+/**
+ * Collects keyboard and mouse events and provides them to the CommandProcessor for processing.
+ */
 public class InputBuffer {
     private final List<AWTEvent> input = new ArrayList<>();
 
@@ -25,6 +27,11 @@ public class InputBuffer {
         );
     }
 
+    /**
+     * Consume current collected inputs and return them
+     *
+     * @return current inputs
+     */
     public List<AWTEvent> getInput() {
         List<AWTEvent> result = new ArrayList<>(input);
         input.clear();

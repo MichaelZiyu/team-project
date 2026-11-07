@@ -21,11 +21,11 @@ public class GameMap implements Iterable<Renderable>{
     }
 
     public void tick() {
-        terrain.update(player.coordinate[0], player.coordinate[1]);
+        terrain.update(player.body.coordinate[0], player.body.coordinate[1]);
     }
 
     @Override
     public Iterator<Renderable> iterator() {
-        return Collections.emptyIterator();
+        return terrain.iterator();
     }
 }

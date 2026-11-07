@@ -19,8 +19,6 @@ public class PanelManager {
     public static final JPanel loadMenuPanel = createLoadMenuPanel();
     public static final JPanel gamePanel = createGamePanel();
 
-    public static final JPanel pausePanel = createPausePanel();
-
     private static JPanel createStartMenuPanel() {
         return new StartMenuPanel(
                 // Start Game

@@ -1,13 +1,14 @@
 package game;
 
 import file.FileManager;
-import game.gameModel.Entity;
-import game.gameModel.Player;
-import game.gameModel.Renderable;
-import game.gameModel.Scene;
-import terrainscene.ChunkedTerrainScene;
+import game.gameModel.*;
+import game.gameModel.Scenes.ActionScene;
+import game.gameModel.Scenes.Scene;
+import game.gameModel.Scenes.StatusScene;
+import jswing.WindowManager;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -20,7 +21,7 @@ public class World implements Serializable {
 
 
     // view saves the type of view the game is currently in
-    private final WorldView view = new WorldView();
+    private WorldView view;
 
     // rendering distance for terrain chunks.
     // TODO: this is a configurable constant and should show up in setting menu
@@ -28,9 +29,10 @@ public class World implements Serializable {
 
     //TEMP: test case
     private static final long TERRAIN_SEED = 42L;
+    private long seed;
 
     private Player player;
-    private Set<Entity> entities;
+    private Set<Entity> entities = new HashSet<>();
 
     /**
      * sceneLayers is a list of ordered Scenes for the game to render. Each Scene object stores
@@ -49,34 +51,85 @@ public class World implements Serializable {
      *
      * The scenes rendered earlier will be behind the scenes rendered after.
      */
-    public List<Scene> sceneLayers;
+    public transient List<Scene> sceneLayers;
 
-    // GameController will check if this is true in each loop, and stop the loop if paused.
-    public boolean pause = false;
+    // GameController will check if this is true in each loop, and stop the loop if end = true.
+    public transient boolean end = false;
 
     // Terrain object generates the blocks on the ground through a String seed
     // also includes interactable blocks like caves
     // GameMap is an Iterable<Renderable>
-    private GameMap map;
+    private transient GameMap map;
+
+    private transient BackGround background;
 
     public World(long seed) {
 
         //TODO: test case
         seed = TERRAIN_SEED;
 
+        this.seed = seed;
+        this.view = new WorldView();
         this.player = new Player("playername", view);
         this.map = new GameMap(seed, player);
         this.entities.add(player);
+
+        //TEMP:test case
+        entities.add(new Player("player2", view));
+
+        initialize();
+    }
+
+    public static void main(String[] args) {
+        World world = new World(1);
+        new FileManager("sample").saveWorld(world);
+    }
+
+    /**
+     * initialize not serializable attributes
+     */
+    public void initialize() {
+        loadTexture();
+        initializePhysicsSystem();
+        this.map = new GameMap(seed, player);
+        this.background = new BackGround(player, view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
+        initializeSceneLayers();
+    }
+
+    /**
+     * initialize scene layers
+     * Prerequisite:
+     * - background, map are correctly initialized
+     */
+    private void initializeSceneLayers() {
         this.sceneLayers = List.of(
-                new Scene("Background"), // background picture
-                new Scene("terrain", map), // terrain map
-                new Scene("interactable"), // cave
-                new Scene("physicsbody"), // collision box
-                new Scene("entities"), // characters, status effect
-                new Scene("entityStats"), // hp
+                new Scene("gameUI"), // pause menu
+                new Scene("physicsbody", PhysicsSystem.bodies), // collision box
                 new Scene("filters"), // such as weather, sunlight
-                new Scene("gameUI") // pause menu
+                new Scene("entityStats"), // hp
+
+                // maintain these two scenes simultaneously.
+                // PhysicsBody is body attribute from each entity in entities
+                new StatusScene("status", entities), // character status textures
+                new ActionScene("action", entities), // character movement textures
+
+                new Scene("interactable"), // cave
+                new Scene("terrain", map), // terrain map
+                new Scene("Background", List.of(background)) // background picture
         );
+        sceneLayers.get(3).setVisible(false);
+
+    }
+
+    /**
+     * register all entities to physics system
+     */
+    private void initializePhysicsSystem() {
+        PhysicsSystem.bodies.clear();
+        for (Entity entity : entities) {
+            entity.registerPhysicsSystem();
+        }
+        PhysicsSystem.setMap(map);
     }
 
     /**
@@ -101,7 +154,7 @@ public class World implements Serializable {
     public void handleCommand(String command) {
         switch (command) {
             case "+esc" -> {
-                this.pause = true;
+                this.end = true;
             }
             case "+e" -> {
 
@@ -115,16 +168,14 @@ public class World implements Serializable {
             default ->
                 CommandProcessor.handle(command);
         }
-        for (Entity entity : entities) {
-            entity.handleCommand();
-        }
+        player.handleCommand();
     }
 
     /**
      * Make the game move to the next moment
      */
     public void tick() {
-        if (pause) return;
+        if (end) return;
         map.tick();
         for (Entity entity : entities) {
             entity.tick();

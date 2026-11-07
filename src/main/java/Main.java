@@ -1,10 +1,16 @@
 import file.FileManager;
+import game.World;
 import states.PanelStateController;
 import testpackage.Test;
 
-public class Main extends Test { //testpackage.Test is just a toolkit
+public class Main {
 
     public static void main(String[] args){
+
+        // TEMP: test case
+        // save a sample world
+        World world = new World(42L);
+        new FileManager("sample").saveWorld(world);
         PanelStateController.start();
     }
 
@@ -17,5 +23,4 @@ public class Main extends Test { //testpackage.Test is just a toolkit
  * GameController.FRAME_TIME
  */
 
-//TODO: make PhysicsBody, Entity and StateManager renderable.
 

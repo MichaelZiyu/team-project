@@ -6,8 +6,8 @@ import states.EntityStates.EntityState;
 
 public abstract class ActionState extends EntityState {
 
-    public ActionState(String name, Entity entity) {
-        super(name, entity);
+    public ActionState(Entity entity) {
+        super(entity);
     }
 
     public abstract String handleCommand(Player.PlayerCommand command);
