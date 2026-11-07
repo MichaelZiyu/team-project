@@ -1,9 +1,7 @@
 package game.gameModel;
 
 import game.WorldView;
-import jswing.Texture;
 import states.EntityStates.EntityStateManager;
-import testpackage.Test;
 
 import java.io.Serializable;
 
@@ -34,16 +32,11 @@ public abstract class Entity implements Serializable{
         this.speed = speed;
         this.body = new PhysicsBody(width, height);
         loadTexture();
-        registerPhysicsSystem();
     }
 
     public void tick() {
         body.tick();
         stateManager.tick();
-    }
-
-    public void registerPhysicsSystem() {
-        PhysicsSystem.bodies.add(body);
     }
 
     public abstract void loadTexture();
