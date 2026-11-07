@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * Anything
  */
-public abstract class Entity implements Serializable, Renderable{
+public abstract class Entity implements Serializable{
     private static final long serialVersionUID = 1L;
 
     public int hp, attack, maxHp, speed;
@@ -43,32 +43,7 @@ public abstract class Entity implements Serializable, Renderable{
     }
 
     public void registerPhysicsSystem() {
-        PhysicsSystem.addBody(body);
-    }
-
-    @Override
-    public int getX() {
-        return body.getX();
-    }
-
-    @Override
-    public int getY() {
-        return body.getY();
-    }
-
-    @Override
-    public int getWidth() {
-        return body.getWidth();
-    }
-
-    @Override
-    public int getHeight() {
-        return body.getHeight();
-    }
-
-    @Override
-    public Texture getTexture() {
-        return stateManager.getTexture();
+        PhysicsSystem.bodies.add(body);
     }
 
     public abstract void loadTexture();

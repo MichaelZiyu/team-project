@@ -5,39 +5,53 @@ import game.gameModel.Player;
 import jswing.Texture;
 import states.EntityStates.ActionStates.*;
 import states.EntityStates.StatusStates.StatusState;
-import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Manages the current states(including action states and status states) of an entity and the transition among states.
+ */
 public class EntityStateManager implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**status states*/
     public final Map<String, StatusState> statusStates = new HashMap<>();
-    public final Map<StatusState, Integer> statusStateCounter = new HashMap<>();
     public final Set<StatusState> currentStatusStates = new HashSet<>();
+    /** Tracks the remaining duration(in ticks) of each status state*/
+    public final Map<StatusState, Integer> statusStateCounter = new HashMap<>();
 
+    /**action states*/
     public final Map<String, ActionState> actionStates = new HashMap<>();
     public ActionState currentActionState;
 
     private Entity entity;
 
+    /**
+     * register and initialize all entity states, and set default current state to RestState
+     *
+     * @param entity the entity whose states are managed by this state manager
+     */
     public EntityStateManager(Entity entity) {
         this.entity = entity;
         register();
         this.currentActionState = actionStates.get("rest");
     }
 
+    /**
+     * initialize the maps from state names to state objects.
+     */
     private void register() {
         actionStates.putAll(Map.of(
                 "rest", new RestState(entity),
-                "movement", new MovementState(entity)
+                "moving", new MovingState(entity)
         ));
         statusStates.putAll(Map.of(
                 //TODO status states
         ));
     }
 
+    /** load texture of all states*/
     public void loadTexture(String texturePath) {
         for (StatusState state : statusStateCounter.keySet()) {
             state.loadTexture(texturePath);
@@ -47,6 +61,9 @@ public class EntityStateManager implements Serializable {
         }
     }
 
+    /**
+     * ticks all entity states. maintains current status state by checking if their durations are zero
+     */
     public void tick() {
         int tickCount;
         for (StatusState status : statusStateCounter.keySet()) {
@@ -64,6 +81,7 @@ public class EntityStateManager implements Serializable {
         currentActionState.tick();
     }
 
+    /** applies the effect from all entity states the entity has right now*/
     public void apply() {
         currentActionState.apply();
         for (StatusState status : currentStatusStates) {
@@ -71,6 +89,9 @@ public class EntityStateManager implements Serializable {
         }
     }
 
+    /** handles player command and do the transition of action states
+     * let action states handle additional commands from previous transition if any
+     */
     public void handleCommand(Player.PlayerCommand command) {
         String[] transition = currentActionState.handleCommand(command).split("-", 2);
 
@@ -86,6 +107,7 @@ public class EntityStateManager implements Serializable {
         }
     }
 
+    /** return the current action state texture*/
     public Texture getTexture() {
         return currentActionState.getTexture();
     }

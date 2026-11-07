@@ -2,8 +2,10 @@ package game;
 
 import file.FileManager;
 import game.gameModel.*;
+import game.gameModel.Scenes.ActionScene;
+import game.gameModel.Scenes.Scene;
+import game.gameModel.Scenes.StatusScene;
 import jswing.WindowManager;
-import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -88,7 +90,7 @@ public class World implements Serializable {
      */
     public void initialize() {
         loadTexture();
-        registerPhysicsSystem();
+        initializePhysicsSystem();
         this.map = new GameMap(seed, player);
         this.background = new BackGround(player, view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
         initializeSceneLayers();
@@ -102,29 +104,32 @@ public class World implements Serializable {
     private void initializeSceneLayers() {
         this.sceneLayers = List.of(
                 new Scene("gameUI"), // pause menu
+                new Scene("physicsbody", PhysicsSystem.bodies), // collision box
                 new Scene("filters"), // such as weather, sunlight
                 new Scene("entityStats"), // hp
 
                 // maintain these two scenes simultaneously.
                 // PhysicsBody is body attribute from each entity in entities
-                new Scene("entities", entities), // character movement textures, status effect textures
-                new Scene("physicsbody", PhysicsSystem.bodies), // collision box
+                new StatusScene("status", entities), // character status textures
+                new ActionScene("action", entities), // character movement textures
 
                 new Scene("interactable"), // cave
                 new Scene("terrain", map), // terrain map
                 new Scene("Background", List.of(background)) // background picture
         );
+        sceneLayers.get(3).setVisible(false);
 
     }
 
     /**
      * register all entities to physics system
      */
-    private void registerPhysicsSystem() {
-        PhysicsSystem.clear();
+    private void initializePhysicsSystem() {
+        PhysicsSystem.bodies.clear();
         for (Entity entity : entities) {
             entity.registerPhysicsSystem();
         }
+        PhysicsSystem.setMap(map);
     }
 
     /**

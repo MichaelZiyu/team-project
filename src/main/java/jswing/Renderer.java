@@ -39,6 +39,14 @@ public class Renderer {
             panel.add(component);
         }
 
+        // Debug: display player position
+        camera.transform(playerX, playerY, playerX, playerY, 5, 5);
+
+        JPanel debugPoint = new JPanel();
+        debugPoint.setBackground(Color.BLACK);
+        debugPoint.setBounds(camera.x, camera.y, 5, 5);
+        panel.add(debugPoint);
+
         panel.revalidate();
         panel.repaint();
     }

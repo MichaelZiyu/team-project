@@ -6,8 +6,10 @@ import jswing.Texture;
 
 public class RestState extends ActionState {
 
+    public static final String name = "rest";
+
     public RestState(Entity entity) {
-        super("rest", entity);
+        super(entity);
     }
 
     @Override
@@ -16,9 +18,9 @@ public class RestState extends ActionState {
             case Player.PlayerCommand.MOVE_FORWARD,
                  Player.PlayerCommand.MOVE_BACKWARD,
                  Player.PlayerCommand.MOVE_LEFT,
-                 Player.PlayerCommand.MOVE_RIGHT -> {return "movement-" + command.name();}
+                 Player.PlayerCommand.MOVE_RIGHT -> {return MovingState.name + "-" + command.name();}
             default -> {
-                return "rest";
+                return name;
             }
         }
     }

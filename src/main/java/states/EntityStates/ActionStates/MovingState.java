@@ -3,12 +3,13 @@ package states.EntityStates.ActionStates;
 import game.gameModel.Entity;
 import game.gameModel.Player;
 import jswing.Texture;
-import testpackage.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MovementState extends ActionState{
+public class MovingState extends ActionState{
+
+    public static final String name = "moving";
 
     private transient Map<String, Texture> textureMap;
 
@@ -16,8 +17,8 @@ public class MovementState extends ActionState{
 
     private boolean run = false;
 
-    public MovementState(Entity entity) {
-        super("movement", entity);
+    public MovingState(Entity entity) {
+        super(entity);
     }
 
     @Override
@@ -36,14 +37,14 @@ public class MovementState extends ActionState{
             case ATTACK -> {
                 currentws = null;
                 currentad = null;
-                return "attack";
+                return AttackState.name;
             }
             case RUN -> this.run = true;
             case CANCEL_RUN -> this.run = false;
         }
 
-        if (currentws != null || currentad != null) return "movement";
-        else return "rest";
+        if (currentws != null || currentad != null) return name;
+        else return RestState.name;
     }
 
     private void setDirect(String direction) {

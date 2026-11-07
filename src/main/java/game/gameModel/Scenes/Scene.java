@@ -1,10 +1,9 @@
-package game.gameModel;
+package game.gameModel.Scenes;
 
-import java.io.Serial;
-import java.io.Serializable;
+import game.gameModel.Renderable;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
 
 /**
  * Represents a collection of Renderable objects where the order to render them does not matter.
@@ -12,11 +11,11 @@ import java.util.Set;
  */
 public class Scene {
 
-    private static final Iterable<Renderable> EMPTY = Collections::emptyIterator;
+    static final Iterable<Renderable> EMPTY = Collections::emptyIterator;
 
-    private final String name;
-    private Iterable<? extends Renderable> content;
-    private boolean visible = true;
+    String name;
+    Iterable<? extends Renderable> content;
+    boolean visible = true;
 
     public Scene(String name, Iterable<? extends Renderable> content) {
         this.name = name;

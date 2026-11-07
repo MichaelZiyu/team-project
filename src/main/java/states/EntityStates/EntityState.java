@@ -13,15 +13,13 @@ import java.io.Serializable;
 public abstract class EntityState implements Renderable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    public String name;
     public Entity entity;
 
     protected transient Texture texture;
 
     private int tickCount = 0;
 
-    public EntityState(String name, Entity entity) {
-        this.name = name;
+    public EntityState(Entity entity) {
         this.entity = entity;
     }
 
@@ -38,12 +36,8 @@ public abstract class EntityState implements Renderable, Serializable {
     public void resetTickCount() {
         this.tickCount = 0;
     }
-    
-    public abstract void loadTexture(String texturePath);
 
-    public String toString() {
-        return this.name;
-    }
+    public abstract void loadTexture(String texturePath);
 
     @Override
     public Texture getTexture() {
@@ -52,12 +46,12 @@ public abstract class EntityState implements Renderable, Serializable {
 
     @Override
     public int getWidth() {
-        return texture.getWidth();
+        return getTexture().getWidth();
     }
 
     @Override
     public int getHeight() {
-        return texture.getHeight();
+        return getTexture().getHeight();
     }
 
     @Override

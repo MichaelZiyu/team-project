@@ -4,7 +4,7 @@ import jswing.PanelManager;
 
 
 /**
- * Static class responsible for initializing, storing, and managing all game states.
+ * Static class responsible for initializing, storing, and managing all panel states.
  * Provides public access to predefined states.
  */
 public class PanelStateManager {
