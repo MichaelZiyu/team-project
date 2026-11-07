@@ -19,6 +19,13 @@ public class WorldView implements Serializable {
         this.state = Views.TOPDOWN;
     }
 
+    public void switchView() {
+        switch (state) {
+            case TOPDOWN -> this.state = Views.FRONT2D;
+            case FRONT2D -> this.state = Views.TOPDOWN;
+        }
+    }
+
     public String toString() {
         if (state == Views.TOPDOWN) return "topdown";
         else if (state == Views.FRONT2D) return "front2d";
