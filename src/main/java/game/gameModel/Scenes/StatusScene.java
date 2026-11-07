@@ -10,8 +10,8 @@ public class StatusScene extends Scene{
 
     private Set<Entity> entities;
 
-    public StatusScene(String name, Set<Entity> content) {
-        super(name);
+    public StatusScene(Set<Entity> content) {
+        super("StatusScene");
         this.entities = content;
     }
 

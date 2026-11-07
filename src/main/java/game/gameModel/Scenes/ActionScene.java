@@ -12,8 +12,8 @@ public class ActionScene extends Scene{
 
     private Set<Entity> entities;
 
-    public ActionScene(String name, Set<Entity> content) {
-        super(name);
+    public ActionScene(Set<Entity> content) {
+        super("ActionScene");
         this.entities = content;
     }
 
