@@ -1,11 +1,7 @@
-package game;
+package game.gameModel;
 
-import game.gameModel.Player;
-import game.gameModel.Renderable;
 import terrainscene.ChunkedTerrainScene;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 
 public class GameMap implements Iterable<Renderable>{

@@ -1,8 +1,8 @@
-package game.gameModel;
+package game.gameModel.Physics;
 
 import game.GameController;
+import game.gameModel.Renderable;
 import jswing.Texture;
-import testpackage.Test;
 
 import java.io.Serializable;
 
@@ -36,10 +36,6 @@ public class PhysicsBody implements Serializable, Renderable {
 
     public void setRunCoefficient(double multiplier) {
         runCoefficient = multiplier;
-    }
-
-    public void resetRunCoefficient() {
-        runCoefficient = 1;
     }
 
     /**

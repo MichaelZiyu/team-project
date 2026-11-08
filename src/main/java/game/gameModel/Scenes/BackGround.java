@@ -1,9 +1,11 @@
-package game.gameModel;
+package game.gameModel.Scenes;
 
 import game.WorldView;
+import game.gameModel.Player;
+import game.gameModel.Renderable;
 import jswing.Texture;
 
-public class BackGround implements Renderable{
+public class BackGround implements Renderable {
 
     private WorldView view;
     private int windowWidth, windowHeight;

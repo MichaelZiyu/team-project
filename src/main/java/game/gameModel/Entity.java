@@ -1,6 +1,7 @@
 package game.gameModel;
 
 import game.WorldView;
+import game.gameModel.Physics.PhysicsBody;
 import states.EntityStates.EntityStateManager;
 
 import java.io.Serializable;

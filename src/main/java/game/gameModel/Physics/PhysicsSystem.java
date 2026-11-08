@@ -1,6 +1,7 @@
-package game.gameModel;
+package game.gameModel.Physics;
 
-import game.GameMap;
+import game.gameModel.GameMap;
+import game.gameModel.Entity;
 
 import java.util.HashSet;
 import java.util.Set;

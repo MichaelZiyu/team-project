@@ -2,7 +2,9 @@ package game;
 
 import file.FileManager;
 import game.gameModel.*;
+import game.gameModel.Physics.PhysicsSystem;
 import game.gameModel.Scenes.ActionScene;
+import game.gameModel.Scenes.BackGround;
 import game.gameModel.Scenes.Scene;
 import game.gameModel.Scenes.StatusScene;
 import jswing.WindowManager;
