@@ -14,8 +14,8 @@ public class Player extends Entity {
     private static final int ATTACK = 1;
     private static final int MAX_HP = 20;
     private static final int SPEED = 120;
-    private static final int PLAYER_BODY_WIDTH = 40;
-    private static final int PLAYER_BODY_HEIGHT = 64;
+    private static final int PLAYER_BODY_WIDTH = 36;
+    private static final int PLAYER_BODY_HEIGHT = 20;
 
     public enum PlayerCommand {
         // Movements

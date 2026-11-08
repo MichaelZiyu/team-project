@@ -24,7 +24,7 @@ public class World implements Serializable {
     private WorldView view;
 
     // rendering distance for terrain chunks.
-    // TODO: this is a configurable constant and should show up in setting menu
+    // TODO: this is a configurable constant
     public static int TERRAIN_RENDER_DISTANCE = 1;
 
     //TEMP: test case
@@ -90,10 +90,10 @@ public class World implements Serializable {
      */
     public void initialize() {
         loadTexture();
-        initializePhysicsSystem();
         this.map = new GameMap(seed, player);
         this.background = new BackGround(player, view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
         initializeSceneLayers();
+        initializePhysicsSystem();
     }
 
     /**
@@ -104,19 +104,22 @@ public class World implements Serializable {
     private void initializeSceneLayers() {
         this.sceneLayers = List.of(
                 new Scene("gameUI"), // pause menu
-                new Scene("physicsbody", PhysicsSystem.bodies), // collision box
+                new Scene("physicsbody", PhysicsSystem.entityBodies), // collision box
                 new Scene("filters"), // such as weather, sunlight
                 new Scene("entityStats"), // hp
 
                 // maintain these two scenes simultaneously.
                 // PhysicsBody is body attribute from each entity in entities
-                new StatusScene("status", entities), // character status textures
-                new ActionScene("action", entities), // character movement textures
+                new StatusScene(entities), // character status textures
+                new ActionScene(entities), // character movement textures
 
                 new Scene("interactable"), // cave
                 new Scene("terrain", map), // terrain map
                 new Scene("Background", List.of(background)) // background picture
         );
+        // hide the background as it is only used in front 2d.
+        sceneLayers.get(8).setVisible(false);
+        // TODO only delete this after status state finished
         sceneLayers.get(3).setVisible(false);
 
     }
@@ -125,9 +128,9 @@ public class World implements Serializable {
      * register all entities to physics system
      */
     private void initializePhysicsSystem() {
-        PhysicsSystem.bodies.clear();
+        PhysicsSystem.clear();
         for (Entity entity : entities) {
-            entity.registerPhysicsSystem();
+            PhysicsSystem.addEntity(entity);
         }
         PhysicsSystem.setMap(map);
     }
@@ -190,6 +193,10 @@ public class World implements Serializable {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public void switchView() {
+        view.switchView();
     }
 
 
