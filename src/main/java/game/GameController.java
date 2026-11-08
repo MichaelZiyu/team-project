@@ -1,8 +1,7 @@
 package game;
 
-import file.FileManager;
 import states.PanelStateController;
-import states.StateManager;
+import states.PanelStateManager;
 import system.InputBuffer;
 
 import javax.swing.*;
@@ -10,40 +9,52 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
 import jswing.Renderer;
-
 import testpackage.Test;
 
 public class GameController {
 
     private static World world;
-    private static FileManager file;
     public static final double FRAME_TIME = 1.0 / 60.0;
-    private static final JPanel mainPanel = StateManager.gameState.panel;
+    private static final JPanel mainPanel = PanelStateManager.gameState.panel;
     private static Renderer renderer;
 
-    public static void initializeGame(World world, FileManager file) {
+    public static void initializeGame(World world) {
         GameController.world = world;
-        world.pause = false;
-        world.loadTexture();
-        GameController.file = file;
+        world.initialize();
         GameController.renderer = new Renderer(mainPanel);
     }
 
     public static void run() {
         InputBuffer input = new InputBuffer();
+        CommandProcessor processor = new CommandProcessor(input);
 
-        while (!world.pause) {
+        while (!world.end) {
 
             long startTime = System.nanoTime();
 
             // provide world with filtered commands from input event captured during current frame
-            for (AWTEvent event : input.getInput()) {
-                String command = CommandProcessor.translate(event);
-                if (command != null) {
-                    world.takeCommand(command);
-                }
+            for (String command : processor.getInput()) {
+                world.handleCommand(command);
             }
+
             world.tick();
+
+            // Renderer.render() is responsible for all operations that update the main panel.
+            // Execute it on the EDT to ensure thread-safe Swing component updates.
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    renderer.render(
+                            world.render(),
+                            (int) world.getPlayer().body.coordinate[0],
+                            (int) world.getPlayer().body.coordinate[1]
+                    );
+                });
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException("rendering failed", e.getCause());
+            }
 
             long elapsed = System.nanoTime() - startTime;
             long remaining = (long) (FRAME_TIME * 1_000_000_000L) - elapsed;
@@ -59,22 +70,6 @@ public class GameController {
                 }
             }
 
-            // Renderer.render() is responsible for all operations that update the main panel.
-            // Execute it on the EDT to ensure thread-safe Swing component updates.
-            try {
-                SwingUtilities.invokeAndWait(() -> {
-                    renderer.render(
-                            world.render(),
-                            (int) world.getPlayer().coordinate[0],
-                            (int) world.getPlayer().coordinate[1]
-                    );
-                });
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException("rendering failed", e.getCause());
-            }
 
         }
         PanelStateController.transition("Exit");

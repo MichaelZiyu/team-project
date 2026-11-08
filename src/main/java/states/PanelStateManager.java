@@ -4,10 +4,10 @@ import jswing.PanelManager;
 
 
 /**
- * Static class responsible for initializing, storing, and managing all game states.
+ * Static class responsible for initializing, storing, and managing all panel states.
  * Provides public access to predefined states.
  */
-public class StateManager {
+public class PanelStateManager {
 
     public static final PanelState startMenuState = new PanelState("startMenuState", PanelManager.startMenuPanel);
     public static final PanelState settingMenuState = new PanelState("settingMenuState",
@@ -15,8 +15,5 @@ public class StateManager {
     public static final PanelState exitState = new PanelState("exitState", null);
     public static final PanelState loadMenuState = new PanelState("loadMenuState", PanelManager.loadMenuPanel);
     public static final PanelState gameState = new PanelState("gameState", PanelManager.gamePanel);
-
-    public static final PanelState pauseState = new PanelState("pauseState", PanelManager.pausePanel);
-
 
 }

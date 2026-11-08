@@ -1,26 +1,28 @@
 package game.gameModel;
 
 import game.WorldView;
-import jswing.Texture;
-import states.EntityState;
-import states.EntityStateManager;
+import states.EntityStates.EntityStateManager;
 
 import java.io.Serializable;
-import java.util.Set;
 
-public abstract class Entity extends PhysicsBody {
+/**
+ * Anything
+ */
+public abstract class Entity implements Serializable{
     private static final long serialVersionUID = 1L;
 
-    int hp, attack, maxHp, speed;
+    public int hp, attack, maxHp, speed;
     String name;
+    public static final double RUN_COEFFICIENT = 3;
+
+    public PhysicsBody body;
 
     public EntityStateManager stateManager = new EntityStateManager(this);
     WorldView view;
 
     Inventory inventory;
 
-    public Entity(int attack, int maxHp, String name, WorldView view, int speed) {
-        super();
+    public Entity(int attack, int maxHp, String name, WorldView view, int speed, int width, int height) {
         this.name = name;
         this.maxHp = maxHp;
         this.hp = maxHp;
@@ -28,9 +30,17 @@ public abstract class Entity extends PhysicsBody {
         this.inventory = new Inventory();
         this.view = view;
         this.speed = speed;
+        this.body = new PhysicsBody(width, height);
         loadTexture();
     }
 
+    public void tick() {
+        body.tick();
+        stateManager.tick();
+    }
+
     public abstract void loadTexture();
+
+    public abstract void handleCommand();
 
 }

@@ -5,6 +5,8 @@ import game.WorldView;
 import testpackage.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Player extends Entity {
     private static final long serialVersionUID = 1L;
@@ -12,7 +14,8 @@ public class Player extends Entity {
     private static final int ATTACK = 1;
     private static final int MAX_HP = 20;
     private static final int SPEED = 120;
-    private static final double RUN_COEFFICIENT = 3;
+    private static final int PLAYER_BODY_WIDTH = 36;
+    private static final int PLAYER_BODY_HEIGHT = 20;
 
     public enum PlayerCommand {
         // Movements
@@ -20,8 +23,10 @@ public class Player extends Entity {
         MOVE_BACKWARD,
         MOVE_LEFT,
         MOVE_RIGHT,
-        CANCEL_WS,
-        CANCEL_AD,
+        CANCEL_FORWARD,
+        CANCEL_BACKWARD,
+        CANCEL_LEFT,
+        CANCEL_RIGHT,
 
         RUN,
         CANCEL_RUN,
@@ -37,40 +42,25 @@ public class Player extends Entity {
         INTERACT
     }
 
-
     public Player(String name, WorldView view) {
-        super(ATTACK, MAX_HP, name, view, SPEED);
+        super(ATTACK, MAX_HP, name, view, SPEED, PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT);
     }
 
     @Override
     public void loadTexture() {
+        body.loadTexture();
         stateManager.loadTexture(view + "/player");
     }
 
+    @Override
     public void handleCommand() {
         PlayerCommand command;
 
         while ((command = CommandProcessor.commandQueue.poll()) != null) {
-            switch (command) {
-                case MOVE_FORWARD -> setVelocityY(SPEED);
-                case MOVE_BACKWARD -> setVelocityY(-SPEED);
-                case MOVE_LEFT -> setVelocityX(-SPEED);
-                case MOVE_RIGHT -> setVelocityX(SPEED);
-                case CANCEL_WS -> setVelocityY(0);
-                case CANCEL_AD -> setVelocityX(0);
-                case RUN -> setRunCoefficient(RUN_COEFFICIENT);
-                case CANCEL_RUN -> resetRunCoefficient();
-            }
-
-            stateManager.handleCommand(command);        }
+            stateManager.handleCommand(command);
+        }
+        stateManager.apply();
     }
-
-    public void tick() {
-        super.tick();
-        stateManager.tick();
-    }
-
-
 
 
 }

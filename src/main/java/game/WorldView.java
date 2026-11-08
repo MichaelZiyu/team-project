@@ -2,6 +2,9 @@ package game;
 
 import java.io.Serializable;
 
+/**
+ * Represent the type of view the game is currently in
+ */
 public class WorldView implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -14,6 +17,13 @@ public class WorldView implements Serializable {
 
     public WorldView() {
         this.state = Views.TOPDOWN;
+    }
+
+    public void switchView() {
+        switch (state) {
+            case TOPDOWN -> this.state = Views.FRONT2D;
+            case FRONT2D -> this.state = Views.TOPDOWN;
+        }
     }
 
     public String toString() {
