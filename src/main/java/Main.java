@@ -23,4 +23,6 @@ public class Main {
  * GameController.FRAME_TIME
  */
 
+//TODO issue: when player1 is behind player2 it is still rendered as above player2
+
 

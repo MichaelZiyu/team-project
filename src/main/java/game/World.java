@@ -113,10 +113,14 @@ public class World implements Serializable {
                 new Scene("interactable"), // cave
                 new Scene("terrain", map), // terrain map
 
+                //TODO make it BackgroundScene
                 new Scene("Background", List.of(background)) // background picture
         );
         // hide the background as it is only used in front 2d.
         sceneLayers.get(8).setVisible(false);
+
+        //hide physics body layer as it is for test purpose
+        //sceneLayers.get(1).setVisible(false);
         // TODO only delete this after status state finished
         sceneLayers.get(3).setVisible(false);
 
@@ -172,7 +176,6 @@ public class World implements Serializable {
             entity.tick();
         }
         physicsSystem.handleCollision();
-        Test.print(this);
     }
 
     public void loadTexture() {
