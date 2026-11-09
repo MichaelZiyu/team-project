@@ -11,6 +11,8 @@ public class PhysicsBody implements Serializable, Renderable {
 
     public double[] coordinate, velocity, acceleration;
 
+    private double[] collisionVelocity;
+
     private int width, height;
 
     private transient Texture texture;
@@ -24,6 +26,7 @@ public class PhysicsBody implements Serializable, Renderable {
         this.coordinate = new double[]{0.0, 0.0};
         this.velocity = new double[]{0.0, 0.0};
         this.acceleration = new double[]{0.0, 0.0};
+        this.collisionVelocity = new double[]{0.0, 0.0};
     }
 
     public void setVelocityX(double speed) {
@@ -46,7 +49,7 @@ public class PhysicsBody implements Serializable, Renderable {
         double p, v, a;
         for (int i = 0; i < 2; i++) {
             p = coordinate[i];
-            v = velocity[i];
+            v = velocity[i] + collisionVelocity[i];
             a = acceleration[i];
             p += (v * runCoefficient) * time
                     + 0.5 * a * time * time;
@@ -84,6 +87,21 @@ public class PhysicsBody implements Serializable, Renderable {
     @Override
     public Texture getTexture() {
         return texture;
+    }
+
+    public void resetCollisionVelocity() {
+        collisionVelocity[0] = 0;
+        collisionVelocity[1] = 0;
+    }
+
+    public void setCollisionVelocity(double vx, double vy) {
+        collisionVelocity[0] = vx;
+        collisionVelocity[1] = vy;
+    }
+
+    public String toString() {
+        return "coordinates: " + coordinate[0] + ", " + coordinate[1] + "\n"
+                + "velocity: " + velocity[0] + ", " + velocity[1];
     }
 
 }

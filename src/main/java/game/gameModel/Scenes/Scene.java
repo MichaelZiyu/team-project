@@ -27,7 +27,6 @@ public class Scene {
         this.name = name;
     }
 
-
     public Iterable<? extends Renderable> getContent() {
         if (visible) return content;
         return EMPTY;
