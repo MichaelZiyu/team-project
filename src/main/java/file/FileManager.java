@@ -24,6 +24,7 @@ import java.util.stream.Stream;
  * <p>An instance maintains the identity of the current save and provides
  * operations to load and save its associated World.</p>
  */
+//TODO looks like the instantiation of FileManager is never useful
 public class FileManager {
 
     private String filename;
@@ -32,9 +33,8 @@ public class FileManager {
         this.filename = filename;
     }
 
-    //this method should be done using some packages such as jackson or gson
+    //TODO this method should be done using some packages such as jackson or gson
     //which need some changes in pom.xml.
-    //TODO we should discuss how we save and load transition function maps
     public static Map<String, Map<String, String>> loadtransition() {
         try (InputStream input = FileManager.class.getResourceAsStream("transitions.json")) {
             if (input == null) {

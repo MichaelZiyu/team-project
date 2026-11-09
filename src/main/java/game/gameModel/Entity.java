@@ -1,6 +1,8 @@
 package game.gameModel;
 
 import game.WorldView;
+import game.gameModel.Physics.Collidable;
+import game.gameModel.Physics.PhysicsBody;
 import states.EntityStates.EntityStateManager;
 
 import java.io.Serializable;
@@ -8,7 +10,7 @@ import java.io.Serializable;
 /**
  * Anything
  */
-public abstract class Entity implements Serializable{
+public abstract class Entity implements Collidable, Serializable{
     private static final long serialVersionUID = 1L;
 
     public int hp, attack, maxHp, speed;
@@ -36,11 +38,22 @@ public abstract class Entity implements Serializable{
 
     public void tick() {
         body.tick();
+        stateManager.apply();
         stateManager.tick();
+    }
+
+    @Override
+    public PhysicsBody getBody() {
+        return body;
     }
 
     public abstract void loadTexture();
 
     public abstract void handleCommand();
+
+    public String toString() {
+        return "Entity: " + name + "\n" + stateManager + "\n" +
+                body + "\n";
+    }
 
 }

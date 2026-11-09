@@ -55,11 +55,9 @@ public class Player extends Entity {
     @Override
     public void handleCommand() {
         PlayerCommand command;
-
         while ((command = CommandProcessor.commandQueue.poll()) != null) {
             stateManager.handleCommand(command);
         }
-        stateManager.apply();
     }
 
 

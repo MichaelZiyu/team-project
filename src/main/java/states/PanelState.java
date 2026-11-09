@@ -17,8 +17,11 @@ public class PanelState {
 
 
     /**
+     * A game state that contains a panel to render.
      * store its own transition function by accessing GameController, then regisiter itself to GameController.registry
      * @param name name of this state
+     *
+     * @param panel the panel to be rendered
      */
     public PanelState(String name, JPanel panel) {
         nameMap = PanelStateController.nameMap.get(name);
