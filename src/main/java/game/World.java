@@ -2,10 +2,10 @@ package game;
 
 import file.FileManager;
 import game.gameModel.*;
-import game.gameModel.Scenes.ActionScene;
-import game.gameModel.Scenes.Scene;
-import game.gameModel.Scenes.StatusScene;
+import game.gameModel.Physics.PhysicsSystem;
+import game.gameModel.Scenes.*;
 import jswing.WindowManager;
+import testpackage.Test;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -31,8 +31,8 @@ public class World implements Serializable {
     private static final long TERRAIN_SEED = 42L;
     private long seed;
 
-    private Player player;
-    private Set<Entity> entities = new HashSet<>();
+    public Player player;
+    public Set<Entity> entities = new HashSet<>();
 
     /**
      * sceneLayers is a list of ordered Scenes for the game to render. Each Scene object stores
@@ -61,6 +61,8 @@ public class World implements Serializable {
     // GameMap is an Iterable<Renderable>
     private transient GameMap map;
 
+    private PhysicsSystem physicsSystem;
+
     private transient BackGround background;
 
     public World(long seed) {
@@ -70,7 +72,7 @@ public class World implements Serializable {
 
         this.seed = seed;
         this.view = new WorldView();
-        this.player = new Player("playername", view);
+        this.player = new Player("player1", view);
         this.map = new GameMap(seed, player);
         this.entities.add(player);
 
@@ -78,11 +80,6 @@ public class World implements Serializable {
         entities.add(new Player("player2", view));
 
         initialize();
-    }
-
-    public static void main(String[] args) {
-        World world = new World(1);
-        new FileManager("sample").saveWorld(world);
     }
 
     /**
@@ -93,28 +90,29 @@ public class World implements Serializable {
         this.map = new GameMap(seed, player);
         this.background = new BackGround(player, view, WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
         initializeSceneLayers();
-        initializePhysicsSystem();
+        this.physicsSystem = new PhysicsSystem(this);
     }
 
     /**
      * initialize scene layers
-     * Prerequisite:
-     * - background, map are correctly initialized
+     * scenes come earlier in the list are scenes on the top of the view.
      */
     private void initializeSceneLayers() {
         this.sceneLayers = List.of(
                 new Scene("gameUI"), // pause menu
-                new Scene("physicsbody", PhysicsSystem.entityBodies), // collision box
+
+                new CollisionBoxScene(entities), // collision box
+
                 new Scene("filters"), // such as weather, sunlight
+
                 new Scene("entityStats"), // hp
 
-                // maintain these two scenes simultaneously.
-                // PhysicsBody is body attribute from each entity in entities
                 new StatusScene(entities), // character status textures
                 new ActionScene(entities), // character movement textures
 
                 new Scene("interactable"), // cave
                 new Scene("terrain", map), // terrain map
+
                 new Scene("Background", List.of(background)) // background picture
         );
         // hide the background as it is only used in front 2d.
@@ -124,16 +122,6 @@ public class World implements Serializable {
 
     }
 
-    /**
-     * register all entities to physics system
-     */
-    private void initializePhysicsSystem() {
-        PhysicsSystem.clear();
-        for (Entity entity : entities) {
-            PhysicsSystem.addEntity(entity);
-        }
-        PhysicsSystem.setMap(map);
-    }
 
     /**
      * Provide Iterable<Renderable> generated through scene.getContent for Renderer to render in O(1)
@@ -183,6 +171,8 @@ public class World implements Serializable {
         for (Entity entity : entities) {
             entity.tick();
         }
+        physicsSystem.handleCollision();
+        Test.print(this);
     }
 
     public void loadTexture() {
@@ -197,6 +187,14 @@ public class World implements Serializable {
 
     public void switchView() {
         view.switchView();
+    }
+
+    public String toString() {
+        String result = "";
+        for (Entity entity : entities) {
+            result += entity;
+        }
+        return result;
     }
 
 

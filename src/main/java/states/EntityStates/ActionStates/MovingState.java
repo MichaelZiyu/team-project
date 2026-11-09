@@ -126,4 +126,8 @@ public class MovingState extends ActionState{
     public void tick() {
         getTexture().tick();
     }
+
+    public String toString() {
+        return name;
+    }
 }

@@ -35,4 +35,8 @@ public class RestState extends ActionState {
     public void loadTexture(String texturePath) {
         this.texture = new Texture(texturePath + "/" + name);
     }
+
+    public String toString() {
+        return name;
+    }
 }

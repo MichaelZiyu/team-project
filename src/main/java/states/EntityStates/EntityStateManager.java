@@ -8,6 +8,7 @@ import states.EntityStates.StatusStates.StatusState;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manages the current states(including action states and status states) of an entity and the transition among states.
@@ -110,6 +111,13 @@ public class EntityStateManager implements Serializable {
     /** return the current action state texture*/
     public Texture getTexture() {
         return currentActionState.getTexture();
+    }
+
+    public String toString() {
+        String statuses = currentStatusStates.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        return "ActionState: " + currentActionState + "\nStatusState: " + statuses;
     }
 
 
