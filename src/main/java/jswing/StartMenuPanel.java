@@ -16,7 +16,7 @@ public class StartMenuPanel extends JPanel {
     // Put your image at:
     // src/main/resources/textures/menu/background.png
     private static final String BACKGROUND_PATH =
-            "/textures/menu/background.png";
+            "/textures/menu/start-menu-background.png";
 
     private static final Color FALLBACK_BACKGROUND =
             new Color(24, 29, 40);

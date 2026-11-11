@@ -39,18 +39,7 @@ public class PanelManager {
     }
 
     private static JPanel createSettingMenuPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        JButton exitButton = new JButton("Exit");
-
-        exitButton.addActionListener(e -> {
-            PanelStateController.transition("Exit");
-        });
-
-        panel.add(exitButton);
-
-        return panel;
+        return new SettingMenuPanel(() -> PanelStateController.transition("Exit"));
     }
 
     private static JPanel createLoadMenuPanel() {

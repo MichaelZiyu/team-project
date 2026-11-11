@@ -13,8 +13,8 @@ public class WindowManager {
     private JFrame frame;
 
     /**default frame width and height*/
-    public static final int FRAME_WIDTH = 800;
-    public static final int FRAME_HEIGHT = 600;
+    public static int FRAME_WIDTH = 800;
+    public static int FRAME_HEIGHT = 600;
 
     public WindowManager() {
         this.frame = initializeFrame();
