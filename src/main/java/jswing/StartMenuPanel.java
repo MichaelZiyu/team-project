@@ -54,7 +54,7 @@ public class StartMenuPanel extends BackgroundMenuPanel  {
         ));
 
         // TODO: Title needed
-        JLabel title = new JLabel("placeholder");
+        JLabel title = new JLabel("JT8-3");
         title.setFont(new Font(Font.SERIF, Font.BOLD, 38));
         title.setForeground(TEXT_COLOR);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);

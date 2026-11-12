@@ -41,6 +41,10 @@ public class PanelStateController {
         window.setWindow(state);
     }
 
+    public static void setWindowSize(int width, int height) {
+        window.setWindowSize(width, height);
+    }
+
     /**
      * transition function implementation
      * the panel of current state should be null if and only if current state is the exitState

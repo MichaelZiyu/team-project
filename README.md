@@ -33,12 +33,12 @@ A front-view side-scrolling mode is in development.
 
 ## User Stories
 
-| ID | User story                                                                                           | Proposed lead |
-| - |------------------------------------------------------------------------------------------------------|---------------|
-| 1 | As a player, I want to configurate setting and save my world so I can resume progress between plays. | Henry Xu      |
-| 2 | As a player, I want to walk and run through a diverse overworld so I can discover new areas.         | Jimmy Zeng    |
-| 3 | As a player, I want to fight a monster so I can get past threats while exploring.                    | Michael Zhou  |
-| 4 | As a player, I want to interact with the structures in the world so I can enter and explore them.    | Yueheng Guan  |
+| ID | User story                                                                                           |
+| - |------------------------------------------------------------------------------------------------------|
+| 1 | As a player, I want to configurate setting and save my world so I can resume progress between plays. |
+| 2 | As a player, I want to walk and run through a diverse overworld so I can discover new areas.         |
+| 3 | As a player, I want to fight a monster so I can get past threats while exploring.                    |
+| 4 | As a player, I want to interact with the structures in the world so I can enter and explore them.    |
 
 ## Use Cases
 
