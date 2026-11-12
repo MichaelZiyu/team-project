@@ -19,12 +19,16 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
 /** Displays the controls for the settings menu. */
-public class SettingMenuPanel extends JPanel {
+public class SettingMenuPanel extends BackgroundMenuPanel {
+
+    // Put image at: src/main/resources/textures/menu/background.png
+    private static final String BACKGROUND_PATH =
+            "/textures/menu/setting-background.png";
 
     private static final Color TEXT_COLOR = new Color(240, 235, 220);
 
     public SettingMenuPanel(Runnable onBack) {
-        super(new GridBagLayout());
+        super(BACKGROUND_PATH, new GridBagLayout());
         setBackground(new Color(24, 29, 40));
 
         JPanel card = new JPanel(new BorderLayout(0, 20));
@@ -48,10 +52,6 @@ public class SettingMenuPanel extends JPanel {
         JComboBox<String> renderDistance = new JComboBox<>(new String[]{"Near", "Normal", "Far"});
         renderDistance.setSelectedItem("Normal");
         addOption(options, "Render distance", renderDistance);
-
-        JSlider volume = new JSlider(0, 100, 100);
-        volume.setOpaque(false);
-        addOption(options, "Sound volume", volume);
 
         JCheckBox fullscreen = new JCheckBox();
         fullscreen.setOpaque(false);
