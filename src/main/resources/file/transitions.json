@@ -3,7 +3,8 @@
     "generateMenu" : "generateMenuState",
     "loadMenu" : "loadMenuState",
     "settings" : "settingMenuState",
-    "Exit" : "exitState"
+    "Exit" : "exitState",
+    "Save" : "SaveMenu"
   },
 
   "settingMenuState" : {
@@ -17,5 +18,9 @@
   "loadMenuState" : {
     "Exit" : "startMenuState",
     "load" : "gameState"
+  },
+
+  "SaveMenu" : {
+    "Exit": "startMenuState"
   }
 }

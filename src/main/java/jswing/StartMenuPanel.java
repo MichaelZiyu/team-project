@@ -34,7 +34,8 @@ public class StartMenuPanel extends JPanel {
     public StartMenuPanel(
             Runnable onStart,
             Runnable onSettings,
-            Runnable onExit) {
+            Runnable onExit,
+            Runnable onSave) {
 
         background = loadBackground();
 
@@ -42,7 +43,7 @@ public class StartMenuPanel extends JPanel {
         setLayout(new GridBagLayout());
         setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        JPanel menu = createMenu(onStart, onSettings, onExit);
+        JPanel menu = createMenu(onStart, onSettings, onExit, onSave);
 
         // GridBagLayout centres the menu in the window.
         add(menu, new GridBagConstraints());
@@ -51,7 +52,8 @@ public class StartMenuPanel extends JPanel {
     private JPanel createMenu(
             Runnable onStart,
             Runnable onSettings,
-            Runnable onExit) {
+            Runnable onExit,
+            Runnable onSave) {
 
         JPanel menu = new JPanel();
         menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
@@ -78,6 +80,8 @@ public class StartMenuPanel extends JPanel {
         menu.add(Box.createVerticalStrut(12));
 
         menu.add(createButton("Exit", onExit));
+
+        menu.add(createButton("Save", onSave));
 
         return menu;
     }
