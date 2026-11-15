@@ -19,13 +19,15 @@ import java.util.stream.Stream;
 /**
  *Manages game save data
  *
- * <p>FileManager provides static methods for accessing existing saves,
- * and can also be instantiated to manage a specific save.</p>
+ * <p>FileManager can be instantiated to manage a specific save.</p>
  * <p>An instance maintains the identity of the current save and provides
  * operations to load and save its associated World.</p>
  */
 //TODO looks like the instantiation of FileManager is never useful
 public class FileManager {
+
+    public static final Path SAVE_DIRECTORY = Path.of("src", "main", "resources", "saves");
+    static final String SAVE_EXTENSION = ".dat";
 
     private String filename;
 
@@ -341,48 +343,32 @@ public class FileManager {
         }
     }
 
-    public static String[] getSaves() {
-        List<String> saves = new ArrayList<>();
-
+    public World loadSave() {
         try {
-            Path savesPath = Path.of(
-                    FileManager.class.getResource("/").toURI()
-            ).resolve("saves");
-
-            if (!Files.exists(savesPath) || !Files.isDirectory(savesPath)) {
-                return new String[0];
+            InputStream stream = FileManager.class.getResourceAsStream("/saves/" + filename + SAVE_EXTENSION);
+            if (stream == null) {
+                throw new FileNotFoundException(filename);
             }
-
-            try (var files = Files.list(savesPath)) {
-                files.filter(Files::isRegularFile)
-                        .forEach(path -> {
-                            String fileName = path.getFileName().toString();
-                            int dotIndex = fileName.lastIndexOf('.');
-                            saves.add(dotIndex > 0
-                                    ? fileName.substring(0, dotIndex)
-                                    : fileName);
-                        });
-            }
-
-            return saves.toArray(new String[0]);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load saves", e);
+            return readSavedWorld(stream);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load save: " + filename, e);
         }
     }
 
-    public World loadSave() {
-        try (ObjectInputStream in = new ObjectInputStream(
-                FileManager.class.getResourceAsStream("/saves/" + filename + ".dat"))) {
-            return (World) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("Failed to load save: " + filename, e);
+    static World readSavedWorld(InputStream stream) throws IOException {
+        try (stream; ObjectInputStream in = new ObjectInputStream(stream)) {
+            if (in.readObject() instanceof World world) {
+                return world;
+            }
+            throw new IOException("Save does not contain a world");
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Could not read the saved world", e);
         }
     }
 
     public void saveWorld(World world) {
         try (ObjectOutputStream out = new ObjectOutputStream(
-                new FileOutputStream("src/main/resources/saves/" + filename + ".dat"))) {
+                new FileOutputStream(SAVE_DIRECTORY.resolve(filename + SAVE_EXTENSION).toFile()))) {
             out.writeObject(world);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save world: " + filename, e);

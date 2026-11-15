@@ -1,75 +1,61 @@
 package jswing;
 
-import javax.swing.*;
-
-import file.FileManager;
+import file.LocalSaveStorage;
 import game.GameController;
-import states.PanelStateController;
 import game.World;
-
-import java.awt.*;
+import interface_adapter.save_list.SaveListViewModel;
+import java.io.IOException;
+import javax.swing.*;
+import states.PanelStateController;
+import use_case.save.SaveId;
 
 /**
- * initialize and store any panel used in the game
+ * Assembly of swing panels and a bridge to the existing Load action.
+ * It supplies panel instances to {@code PanelStateManager}. The Load callback
+ * reads the selected world through {@code LocalSaveStorage}, initializes
+ * {@code GameController}, and requests the gameplay transition.
  */
+
 public class PanelManager {
 
-    public static final JPanel startMenuPanel = createStartMenuPanel();
-    public static final JPanel settingMenuPanel = createSettingMenuPanel();
-    public static final JPanel loadMenuPanel = createLoadMenuPanel();
-    public static final JPanel gamePanel = createGamePanel();
+    public final JPanel startMenuPanel;
+    public final JPanel settingMenuPanel = createSettingMenuPanel();
+    public final JPanel loadMenuPanel;
+    public final JPanel newWorldPanel = createNewWorldPanel();
+    public final JPanel gamePanel = createGamePanel();
 
-    private static JPanel createStartMenuPanel() {
-        return new StartMenuPanel(
-                // Start Game
-                () -> {
-                    if (FileManager.getSaves().length == 0) {
-                        PanelStateController.transition("generateMenu");
-                    } else {
-                        PanelStateController.transition("loadMenu");
-                    }
-                },
-
-                // Settings
-                () -> PanelStateController.transition("settings"),
-
-                // Exit
-                () -> PanelStateController.transition("Exit")
-        );
+    public PanelManager(StartMenuPanel startMenuPanel, SaveListViewModel saveList, LocalSaveStorage saveStorage) {
+        this.startMenuPanel = startMenuPanel;
+        this.loadMenuPanel = new SaveMenuPanel(
+                saveList,
+                selectionKey -> loadGame(saveStorage, selectionKey),
+                () -> PanelStateController.transition("Exit"));
     }
 
     private static JPanel createSettingMenuPanel() {
         return new SettingMenuPanel(() -> PanelStateController.transition("Exit"));
     }
 
-    private static JPanel createLoadMenuPanel() {
+    private void loadGame(LocalSaveStorage saveStorage, String selectionKey) {
+        try {
+            World world = saveStorage.loadSave(new SaveId(selectionKey));
+            GameController.initializeGame(world, gamePanel);
+        } catch (IOException | RuntimeException exception) {
+            System.getLogger(PanelManager.class.getName())
+                    .log(System.Logger.Level.WARNING, "Could not load the selected world", exception);
+            JOptionPane.showMessageDialog(loadMenuPanel, "Could not load the selected world.",
+                    "Load failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        PanelStateController.transition("load");
+    }
+
+    private static JPanel createNewWorldPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        JButton exitButton = new JButton("Exit");
-        JComboBox<String> list = new JComboBox<>(FileManager.getSaves());
-        list.setMaximumSize(new Dimension(200, 30));
-        list.setPreferredSize(new Dimension(200, 30));
-        list.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JButton loadButton = new JButton("Load");
-
-        loadButton.addActionListener(e -> { // should make the game run
-            String selected = (String) list.getSelectedItem();
-            FileManager file = new FileManager(selected);
-            World world = file.loadSave();
-            GameController.initializeGame(world);
-            PanelStateController.transition("load");
-        });
-
-        exitButton.addActionListener(e -> {
-            PanelStateController.transition("Exit");
-        });
-
-        panel.add(list);
-        panel.add(loadButton);
-        panel.add(exitButton);
-
+        JButton back = new JButton("Back");
+        back.addActionListener(event -> PanelStateController.transition("Exit"));
+        panel.add(new JLabel("No saved worlds found."));
+        panel.add(back);
         return panel;
     }
 

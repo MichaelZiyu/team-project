@@ -1,10 +1,18 @@
 package jswing;
 
+import interface_adapter.start_menu.StartMenuViewModel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+/**
+ * Swing view for the title screen.
+ * It extends {@code BackgroundMenuPanel}, observes {@code StartMenuViewModel}
+ * for status messages, and invokes callbacks for Start Game, Settings, and
+ * Exit. Application startup binds Start Game to the browse controller.
+ */
 
 public class StartMenuPanel extends BackgroundMenuPanel  {
 
@@ -24,6 +32,7 @@ public class StartMenuPanel extends BackgroundMenuPanel  {
             new Color(240, 235, 220);
 
     public StartMenuPanel(
+            StartMenuViewModel viewModel,
             Runnable onStart,
             Runnable onSettings,
             Runnable onExit) {
@@ -34,6 +43,15 @@ public class StartMenuPanel extends BackgroundMenuPanel  {
         setBorder(new EmptyBorder(30, 30, 30, 30));
 
         JPanel menu = createMenu(onStart, onSettings, onExit);
+        JLabel status = new JLabel();
+        status.setForeground(TEXT_COLOR);
+        status.setAlignmentX(Component.CENTER_ALIGNMENT);
+        status.setBorder(new EmptyBorder(12, 0, 0, 0));
+        menu.add(status);
+        viewModel.addMessageListener(message -> {
+            status.setText(message);
+            status.setVisible(!message.isEmpty());
+        });
 
         // GridBagLayout centres the menu in the window.
         add(menu, new GridBagConstraints());
@@ -54,7 +72,7 @@ public class StartMenuPanel extends BackgroundMenuPanel  {
         ));
 
         // TODO: Title needed
-        JLabel title = new JLabel("JT8-3");
+        JLabel title = new JLabel("Title?");
         title.setFont(new Font(Font.SERIF, Font.BOLD, 38));
         title.setForeground(TEXT_COLOR);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);

@@ -1,7 +1,6 @@
 package game;
 
 import states.PanelStateController;
-import states.PanelStateManager;
 import system.InputBuffer;
 
 import javax.swing.*;
@@ -15,13 +14,12 @@ public class GameController {
 
     private static World world;
     public static final double FRAME_TIME = 1.0 / 60.0;
-    private static final JPanel mainPanel = PanelStateManager.gameState.panel;
     private static Renderer renderer;
 
-    public static void initializeGame(World world) {
-        GameController.world = world;
+    public static void initializeGame(World world, JPanel gamePanel) {
         world.initialize();
-        GameController.renderer = new Renderer(mainPanel);
+        GameController.world = world;
+        GameController.renderer = new Renderer(gamePanel);
     }
 
     public static void run() {
@@ -72,7 +70,7 @@ public class GameController {
 
 
         }
-        PanelStateController.transition("Exit");
+        SwingUtilities.invokeLater(() -> PanelStateController.transition("Exit"));
     }
 
     public static void start() {
