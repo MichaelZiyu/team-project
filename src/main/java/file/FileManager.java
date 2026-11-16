@@ -5,15 +5,16 @@ import game.World;
 
 import java.awt.*;
 import java.io.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.swing.*;
-import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -96,14 +97,30 @@ public class FileManager {
                         char escaped = json.charAt(index++);
 
                         switch (escaped) {
-                            case '"': stateBuilder.append('"'); break;
-                            case '\\': stateBuilder.append('\\'); break;
-                            case '/': stateBuilder.append('/'); break;
-                            case 'b': stateBuilder.append('\b'); break;
-                            case 'f': stateBuilder.append('\f'); break;
-                            case 'n': stateBuilder.append('\n'); break;
-                            case 'r': stateBuilder.append('\r'); break;
-                            case 't': stateBuilder.append('\t'); break;
+                            case '"':
+                                stateBuilder.append('"');
+                                break;
+                            case '\\':
+                                stateBuilder.append('\\');
+                                break;
+                            case '/':
+                                stateBuilder.append('/');
+                                break;
+                            case 'b':
+                                stateBuilder.append('\b');
+                                break;
+                            case 'f':
+                                stateBuilder.append('\f');
+                                break;
+                            case 'n':
+                                stateBuilder.append('\n');
+                                break;
+                            case 'r':
+                                stateBuilder.append('\r');
+                                break;
+                            case 't':
+                                stateBuilder.append('\t');
+                                break;
                             case 'u':
                                 if (index + 4 > json.length()) {
                                     throw new IllegalArgumentException("Incomplete Unicode escape at position " + index);
@@ -186,14 +203,30 @@ public class FileManager {
                                 char escaped = json.charAt(index++);
 
                                 switch (escaped) {
-                                    case '"': inputBuilder.append('"'); break;
-                                    case '\\': inputBuilder.append('\\'); break;
-                                    case '/': inputBuilder.append('/'); break;
-                                    case 'b': inputBuilder.append('\b'); break;
-                                    case 'f': inputBuilder.append('\f'); break;
-                                    case 'n': inputBuilder.append('\n'); break;
-                                    case 'r': inputBuilder.append('\r'); break;
-                                    case 't': inputBuilder.append('\t'); break;
+                                    case '"':
+                                        inputBuilder.append('"');
+                                        break;
+                                    case '\\':
+                                        inputBuilder.append('\\');
+                                        break;
+                                    case '/':
+                                        inputBuilder.append('/');
+                                        break;
+                                    case 'b':
+                                        inputBuilder.append('\b');
+                                        break;
+                                    case 'f':
+                                        inputBuilder.append('\f');
+                                        break;
+                                    case 'n':
+                                        inputBuilder.append('\n');
+                                        break;
+                                    case 'r':
+                                        inputBuilder.append('\r');
+                                        break;
+                                    case 't':
+                                        inputBuilder.append('\t');
+                                        break;
                                     case 'u':
                                         if (index + 4 > json.length()) {
                                             throw new IllegalArgumentException("Incomplete Unicode escape at position " + index);
@@ -258,14 +291,30 @@ public class FileManager {
                                 char escaped = json.charAt(index++);
 
                                 switch (escaped) {
-                                    case '"': targetBuilder.append('"'); break;
-                                    case '\\': targetBuilder.append('\\'); break;
-                                    case '/': targetBuilder.append('/'); break;
-                                    case 'b': targetBuilder.append('\b'); break;
-                                    case 'f': targetBuilder.append('\f'); break;
-                                    case 'n': targetBuilder.append('\n'); break;
-                                    case 'r': targetBuilder.append('\r'); break;
-                                    case 't': targetBuilder.append('\t'); break;
+                                    case '"':
+                                        targetBuilder.append('"');
+                                        break;
+                                    case '\\':
+                                        targetBuilder.append('\\');
+                                        break;
+                                    case '/':
+                                        targetBuilder.append('/');
+                                        break;
+                                    case 'b':
+                                        targetBuilder.append('\b');
+                                        break;
+                                    case 'f':
+                                        targetBuilder.append('\f');
+                                        break;
+                                    case 'n':
+                                        targetBuilder.append('\n');
+                                        break;
+                                    case 'r':
+                                        targetBuilder.append('\r');
+                                        break;
+                                    case 't':
+                                        targetBuilder.append('\t');
+                                        break;
                                     case 'u':
                                         if (index + 4 > json.length()) {
                                             throw new IllegalArgumentException("Incomplete Unicode escape at position " + index);
@@ -393,7 +442,6 @@ public class FileManager {
      * load one texture from provided path
      *
      * @param texturePath a path to the texture relative to resources/textures
-     *
      * @return Component object which can be added to JPanel
      */
     public static Component getTexture(String texturePath) {

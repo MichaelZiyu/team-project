@@ -15,5 +15,5 @@ public class PanelStateManager {
     public static final PanelState exitState = new PanelState("exitState", null);
     public static final PanelState loadMenuState = new PanelState("loadMenuState", PanelManager.loadMenuPanel);
     public static final PanelState gameState = new PanelState("gameState", PanelManager.gamePanel);
-
+    public static final PanelState saveState = new PanelState("SaveMenu", PanelManager.savePanel);
 }
