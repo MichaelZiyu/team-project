@@ -53,3 +53,7 @@ This contract sets out shared expectations and commitments for how our team will
 - Members are responsible for ensuring that their contributions integrate with the team's agreed-upon architecture and interfaces.
 - Completing an assigned task includes communicating with relevant teammates, clarifying requirements, and following agreed-upon interfaces. Merely producing an independent implementation that does not follow the team's agreed-upon design does not fulfill the responsibility.
 - Members should communicate their progress, blockers, and integration issues so that problems can be identified and addressed early.
+
+## Signature
+
+Ziyu Zhou
