@@ -5,5 +5,7 @@ package game.interactor;
  */
 public interface GameCommandBoundary {
 
-    public void handleCommand();
+    void handleLocalPlayerCommand(LocalPlayerCommand command);
+
+    void handleRemotePlayerCommand(RemotePlayerCommand command);
 }

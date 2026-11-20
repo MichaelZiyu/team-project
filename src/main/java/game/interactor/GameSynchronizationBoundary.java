@@ -5,5 +5,9 @@ package game.interactor;
  */
 public interface GameSynchronizationBoundary {
 
-    public void synchronizeGame();
+    /**
+     * synchronizes game state with server, including aligning entity position,
+     * player registry, entity status
+     */
+    void synchronizeGame();
 }

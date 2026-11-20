@@ -1,11 +1,15 @@
 package game.controller;
 
+import common.InputBuffer;
 import game.interactor.GameCommandBoundary;
 import game.interactor.GameSnapshotBoundary;
 import game.interactor.GameSynchronizationBoundary;
+import game.interactor.LocalPlayerCommand;
 import game.presenter.GameRendererBoundary;
 import game.settings.GameSettings;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -22,6 +26,8 @@ public class GameController implements GameControllerBoundary{
     private GameSnapshotBoundary gameSnapshot;
     // game snapshot knows an input data structure that game renderer relies on
 
+    private final InputBuffer localInputListener = new InputBuffer();
+
     /**
      * submit a game snapshot to renderer
      * for more details about renderer, see GameRendererBoundary
@@ -37,7 +43,38 @@ public class GameController implements GameControllerBoundary{
     }
 
     private void handleCommand() {
-        commandBoundary.handleCommand();
+        handleLocalCommand();
+        handleRemoteCommand();
+    }
+
+    private void handleLocalCommand() {
+        AWTEvent event;
+
+        while ((event = localInputListener.getInput().poll()) != null) {
+            LocalPlayerCommand command = translateLocalCommand(event);
+            commandBoundary.handleLocalPlayerCommand(command);
+        }
+    }
+
+    private LocalPlayerCommand translateLocalCommand(AWTEvent event) {
+        if (event instanceof KeyEvent) {
+            KeyEvent keyEvent = (KeyEvent) event;
+
+            String key = KeyEvent.getKeyText(keyEvent.getKeyCode())
+                    .toLowerCase();
+
+            if (keyEvent.getID() == KeyEvent.KEY_PRESSED) {
+                return new LocalPlayerCommand("+" + key);
+            } else if (keyEvent.getID() == KeyEvent.KEY_RELEASED) {
+                return new LocalPlayerCommand("-" + key);
+            }
+        }
+
+        return null;
+    }
+
+    private void handleRemoteCommand() {
+
     }
 
     /**
