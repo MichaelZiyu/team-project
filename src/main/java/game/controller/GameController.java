@@ -1,21 +1,31 @@
-package controller;
+package game.controller;
 
-import interactor.GameCommandBoundary;
-import interactor.GameSnapshotBoundary;
-import interactor.GameSynchronizationBoundary;
-import presenter.GameRendererBoundary;
-import settings.GameSettings;
+import game.interactor.GameCommandBoundary;
+import game.interactor.GameSnapshotBoundary;
+import game.interactor.GameSynchronizationBoundary;
+import game.presenter.GameRendererBoundary;
+import game.settings.GameSettings;
 
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * Controller of the game
+ * Responsible for controlling frame rate, calling renderer, synchronize local and remote game data,
+ * and let the game handle command from players
+ */
 public class GameController implements GameControllerBoundary{
 
     private GameCommandBoundary commandBoundary;
     private GameSynchronizationBoundary synchronizer;
+
     private GameRendererBoundary gameRenderer;
     private GameSnapshotBoundary gameSnapshot;
     // game snapshot knows an input data structure that game renderer relies on
 
+    /**
+     * submit a game snapshot to renderer
+     * for more details about renderer, see GameRendererBoundary
+     */
     private void render() {
         // renderer maintains an atomic reference inside class.
         // .submitSnapshot method submit the newest snapshot to the renderer
@@ -27,11 +37,7 @@ public class GameController implements GameControllerBoundary{
     }
 
     private void handleCommand() {
-
-        commandBoundary.handleLocalPlayerCommand();
-
-        commandBoundary.handleServerPlayerCommand();
-
+        commandBoundary.handleCommand();
     }
 
     /**
@@ -46,9 +52,12 @@ public class GameController implements GameControllerBoundary{
         final long frameRemainder = 1_000_000_000L % GameSettings.FPS;
 
         while (true) {
+
+            // the only execution part
             render();
             synchronize();
             handleCommand();
+
 
             nextFrame += frameTime;
             remainder += frameRemainder;
