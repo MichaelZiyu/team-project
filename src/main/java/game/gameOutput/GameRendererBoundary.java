@@ -1,6 +1,6 @@
-package game.presenter;
+package game.gameOutput;
 
-import game.interactor.RenderableData;
+import game.interactor.outputData.RenderableData;
 
 /**
  * game renderer boundary that provides method to update the render data
@@ -8,5 +8,5 @@ import game.interactor.RenderableData;
  */
 public interface GameRendererBoundary {
 
-    public void submitSnapshot(RenderableData snapshot);
+    void submitSnapshot(RenderableData snapshot);
 }

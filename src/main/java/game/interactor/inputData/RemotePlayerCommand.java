@@ -1,4 +1,4 @@
-package game.interactor;
+package game.interactor.inputData;
 
 public class RemotePlayerCommand {
 }

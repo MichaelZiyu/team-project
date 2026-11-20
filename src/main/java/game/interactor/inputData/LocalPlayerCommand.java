@@ -1,4 +1,4 @@
-package game.interactor;
+package game.interactor.inputData;
 
 import java.util.Map;
 

@@ -1,4 +1,6 @@
-package game.interactor;
+package game.interactor.inputBoundaries;
+
+import game.interactor.outputData.RenderableData;
 
 /**
  * provide a method to create a snapshot for renderer

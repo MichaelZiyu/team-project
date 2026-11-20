@@ -1,11 +1,13 @@
 package game.controller;
 
 import common.InputBuffer;
-import game.interactor.GameCommandBoundary;
-import game.interactor.GameSnapshotBoundary;
-import game.interactor.GameSynchronizationBoundary;
-import game.interactor.LocalPlayerCommand;
-import game.presenter.GameRendererBoundary;
+import game.interactor.inputBoundaries.GameCommandBoundary;
+import game.interactor.inputBoundaries.GameSnapshotBoundary;
+import game.interactor.inputBoundaries.GameSynchronizationBoundary;
+import game.interactor.inputBoundaries.GameTickBoundary;
+import game.interactor.inputData.LocalPlayerCommand;
+import game.interactor.inputData.WorldState;
+import game.gameOutput.GameRendererBoundary;
 import game.settings.GameSettings;
 
 import java.awt.*;
@@ -26,6 +28,8 @@ public class GameController implements GameControllerBoundary{
     private GameSnapshotBoundary gameSnapshot;
     // game snapshot knows an input data structure that game renderer relies on
 
+    private GameTickBoundary gameTick;
+
     private final InputBuffer localInputListener = new InputBuffer();
 
     /**
@@ -39,7 +43,12 @@ public class GameController implements GameControllerBoundary{
     }
 
     private void synchronize() {
-        synchronizer.synchronizeGame();
+        synchronizer.synchronize(fetchWorldState());
+    }
+
+    private WorldState fetchWorldState() {
+        //fetch string from server and build a WorldState object
+        return null;
     }
 
     private void handleCommand() {
@@ -77,6 +86,10 @@ public class GameController implements GameControllerBoundary{
 
     }
 
+    private void tick() {
+        gameTick.tick();
+    }
+
     /**
      * run the game by having a loop that updates the game 60 fps
      */
@@ -94,6 +107,7 @@ public class GameController implements GameControllerBoundary{
             render();
             synchronize();
             handleCommand();
+            tick();
 
 
             nextFrame += frameTime;
