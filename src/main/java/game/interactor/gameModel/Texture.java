@@ -17,6 +17,10 @@ public class Texture {
     public BufferedImage getImage() {
         return image;
     }
+
+    public void tick() {
+
+    }
     
     public int getWidth() {
         return width;

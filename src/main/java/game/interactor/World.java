@@ -1,21 +1,23 @@
 package game.interactor;
 
+import game.interactor.gameModel.entities.Player;
 import game.interactor.gameModel.scene.*;
-import game.interactor.inputBoundaries.GameCommandBoundary;
-import game.interactor.inputBoundaries.GameSnapshotBoundary;
-import game.interactor.inputBoundaries.GameSynchronizationBoundary;
-import game.interactor.inputBoundaries.GameTickBoundary;
+import game.interactor.inputBoundaries.*;
 import game.interactor.inputData.LocalPlayerCommand;
 import game.interactor.inputData.RemotePlayerCommand;
 import game.interactor.inputData.WorldState;
 import game.interactor.outputData.RenderableData;
+import menu.inputData.InitializeGameData;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class World implements GameCommandBoundary,
         GameSnapshotBoundary,
         GameSynchronizationBoundary,
-        GameTickBoundary {
+        GameTickBoundary,
+        InitializeWorldBoundary {
 
     private List<Scene> sceneList = List.of(
             new Filter(),
@@ -23,6 +25,11 @@ public class World implements GameCommandBoundary,
             new GameMap(),
             new Background()
     );
+
+    private Player player;
+
+    private Map<String, Player> playerRegistry = new HashMap<>();
+
 
     @Override
     public void tick() {
@@ -50,6 +57,12 @@ public class World implements GameCommandBoundary,
     public void handleRemotePlayerCommand(RemotePlayerCommand command) {
 
     }
+
+    @Override
+    public void initialize(InitializeGameData data) {
+
+    }
+
 
 
 }

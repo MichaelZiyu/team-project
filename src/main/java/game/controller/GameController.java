@@ -1,14 +1,14 @@
 package game.controller;
 
 import common.InputBuffer;
-import game.interactor.inputBoundaries.GameCommandBoundary;
-import game.interactor.inputBoundaries.GameSnapshotBoundary;
-import game.interactor.inputBoundaries.GameSynchronizationBoundary;
-import game.interactor.inputBoundaries.GameTickBoundary;
+import game.gameOutput.GameRenderer;
+import game.interactor.World;
+import game.interactor.inputBoundaries.*;
 import game.interactor.inputData.LocalPlayerCommand;
 import game.interactor.inputData.WorldState;
 import game.gameOutput.GameRendererBoundary;
 import game.settings.GameSettings;
+import menu.inputData.InitializeGameData;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -23,15 +23,31 @@ public class GameController implements GameControllerBoundary{
 
     private GameCommandBoundary commandBoundary;
     private GameSynchronizationBoundary synchronizer;
+    private GameTickBoundary gameTick;
+    private InitializeWorldBoundary worldInitializer;
 
     private GameRendererBoundary gameRenderer;
     private GameSnapshotBoundary gameSnapshot;
     // game snapshot knows an input data structure that game renderer relies on
 
-    private GameTickBoundary gameTick;
-
     private final InputBuffer localInputListener = new InputBuffer();
 
+
+    public GameController(GameCommandBoundary commandBoundary,
+                          GameSynchronizationBoundary synchronizer,
+                          GameTickBoundary gameTick,
+                          GameRendererBoundary gameRenderer,
+                          GameSnapshotBoundary gameSnapshot,
+                          InitializeWorldBoundary worldInitializer) {
+
+        this.commandBoundary = commandBoundary;
+        this.synchronizer = synchronizer;
+        this.gameTick = gameTick;
+        this.gameRenderer = gameRenderer;
+        this.gameSnapshot = gameSnapshot;
+        this.worldInitializer = worldInitializer;
+
+    }
     /**
      * submit a game snapshot to renderer
      * for more details about renderer, see GameRendererBoundary
@@ -128,5 +144,11 @@ public class GameController implements GameControllerBoundary{
                 }
             }
         }
+    }
+
+    @Override
+    public void initializeGame(InitializeGameData data) {
+        // initialize the game
+        // calling boundaries
     }
 }

@@ -6,4 +6,6 @@ package game.settings;
 public class GameSettings {
 
     public static int FPS = 60;
+
+    public static double ENTITY_RUN_COEFFICIENT = 3;
 }
