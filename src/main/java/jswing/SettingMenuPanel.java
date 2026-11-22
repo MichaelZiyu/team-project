@@ -1,13 +1,14 @@
 package jswing;
 
-import states.PanelStateController;
-
+import entity.settings.GameSettings;
+import entity.settings.GameSettings.FrameSize;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -19,9 +20,14 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import menu.DynamicUICommand;
+import menu.SettingsResult;
+import menu.StaticUICommand;
+import menu.UICommandBoundary;
+import menu.UIListener;
 
 /** Displays the controls for the settings menu. */
-public class SettingMenuPanel extends BackgroundMenuPanel {
+public class SettingMenuPanel extends BackgroundMenuPanel implements UIListener {
 
     // Put image at: src/main/resources/textures/menu/background.png
     private static final String BACKGROUND_PATH =
@@ -29,17 +35,22 @@ public class SettingMenuPanel extends BackgroundMenuPanel {
 
     private static final Color TEXT_COLOR = new Color(240, 235, 220);
 
-    private static final WindowSize STANDARD_SIZE =
-            new WindowSize(WindowManager.MIN_FRAME_WIDTH, WindowManager.MIN_FRAME_HEIGHT);
-    private static final WindowSize WIDE_SIZE =
-            new WindowSize(WindowManager.MAX_FRAME_WIDTH, WindowManager.MAX_FRAME_HEIGHT);
-
-    private final JComboBox<WindowSize> windowSizeInput =
-            new JComboBox<>(new WindowSize[]{STANDARD_SIZE, WIDE_SIZE});
+    private final UICommandBoundary commands;
+    private final Runnable onOpen;
+    private final Runnable onBack;
+    private final List<FrameSize> frameSizes;
+    private final JComboBox<FrameSize> frameSizeInput;
     private final JLabel status = new JLabel(" ");
+    private GameSettings appliedSettings;
 
-    public SettingMenuPanel(Runnable onBack) {
+    public SettingMenuPanel(
+            UICommandBoundary commands, List<FrameSize> frameSizes, Runnable onOpen, Runnable onBack) {
         super(BACKGROUND_PATH, new GridBagLayout());
+        this.commands = commands;
+        this.onOpen = onOpen;
+        this.onBack = onBack;
+        this.frameSizes = List.copyOf(frameSizes);
+        this.frameSizeInput = new JComboBox<>(this.frameSizes.toArray(FrameSize[]::new));
         setBackground(new Color(24, 29, 40));
 
         JPanel card = new JPanel(new BorderLayout(0, 20));
@@ -56,7 +67,7 @@ public class SettingMenuPanel extends BackgroundMenuPanel {
         /** Options to change the window size */
         JPanel options = new JPanel(new GridLayout(0, 2, 16, 10));
         options.setOpaque(false);
-        addOption(options, "Window size", windowSizeInput);
+        addOption(options, "Window size", frameSizeInput);
 
         /** Options to change the render distance (not implemented) */
         JComboBox<String> renderDistance = new JComboBox<>(new String[]{"Near", "Normal", "Far"});
@@ -70,12 +81,14 @@ public class SettingMenuPanel extends BackgroundMenuPanel {
         card.add(options, BorderLayout.CENTER);
 
         JButton back = new JButton("Back");
-        back.addActionListener(event -> onBack.run());
+        back.addActionListener(event -> commands.execute(StaticUICommand.BACK, this));
         JButton apply = new JButton("Apply");
         apply.addActionListener(event -> {
-            WindowSize size = (WindowSize) windowSizeInput.getSelectedItem();
-            PanelStateController.setWindowSize(size.width(), size.height());
-            status.setText("Window size applied.");
+            FrameSize frame_size = (FrameSize) frameSizeInput.getSelectedItem();
+            if (appliedSettings != null && frame_size != null) {
+                GameSettings requestedSettings = appliedSettings.withFrameSize(frame_size);
+                commands.execute(new DynamicUICommand(requestedSettings), this);
+            }
         });
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.TRAILING, 8, 0));
@@ -93,18 +106,23 @@ public class SettingMenuPanel extends BackgroundMenuPanel {
         add(card);
     }
 
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        WindowSize currentSize = new WindowSize(WindowManager.FRAME_WIDTH, WindowManager.FRAME_HEIGHT);
-        windowSizeInput.setSelectedItem(WIDE_SIZE.equals(currentSize) ? WIDE_SIZE : STANDARD_SIZE);
-        status.setText(" ");
+    public void openSettings() {
+        commands.execute(StaticUICommand.OPEN_SETTINGS, this);
     }
 
-    private record WindowSize(int width, int height) {
-        @Override
-        public String toString() {
-            return width + " × " + height;
+    @Override
+    public void onSettingsResult(SettingsResult result) {
+        appliedSettings = result.appliedSettings();
+        frameSizeInput.setSelectedIndex(frameSizes.indexOf(appliedSettings.frameSize()));
+        switch (result.outcome()) {
+            case OPENED -> {
+                status.setText(" ");
+                onOpen.run();
+            }
+            case APPLIED -> status.setText("Window size applied.");
+            case BACK -> onBack.run();
+            case UNSUPPORTED_FRAME_SIZE -> status.setText("Choose a supported window size.");
+            case APPLY_FAILED -> status.setText("Could not apply the window size.");
         }
     }
 
