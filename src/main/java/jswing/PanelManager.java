@@ -19,21 +19,20 @@ import use_case.save.SaveId;
 public class PanelManager {
 
     public final JPanel startMenuPanel;
-    public final JPanel settingMenuPanel = createSettingMenuPanel();
+    public final JPanel settingMenuPanel;
     public final JPanel loadMenuPanel;
     public final JPanel newWorldPanel = createNewWorldPanel();
     public final JPanel gamePanel = createGamePanel();
 
-    public PanelManager(StartMenuPanel startMenuPanel, SaveListViewModel saveList, LocalSaveStorage saveStorage) {
+    public PanelManager(
+            StartMenuPanel startMenuPanel, SettingMenuPanel settingMenuPanel,
+            SaveListViewModel saveList, LocalSaveStorage saveStorage) {
         this.startMenuPanel = startMenuPanel;
+        this.settingMenuPanel = settingMenuPanel;
         this.loadMenuPanel = new SaveMenuPanel(
                 saveList,
                 selectionKey -> loadGame(saveStorage, selectionKey),
                 () -> PanelStateController.transition("Exit"));
-    }
-
-    private static JPanel createSettingMenuPanel() {
-        return new SettingMenuPanel(() -> PanelStateController.transition("Exit"));
     }
 
     private void loadGame(LocalSaveStorage saveStorage, String selectionKey) {

@@ -3,6 +3,8 @@ package states;
 import file.FileManager;
 
 import game.GameController;
+import interface_adapter.navigation.NavigationViewModel;
+import interface_adapter.navigation.ScreenId;
 import jswing.*;
 
 import java.util.HashMap;
@@ -26,14 +28,26 @@ public class PanelStateController {
     static final Map<String, PanelState> registry = new HashMap<>();
 
     /** current state of the entire game*/
-    private static PanelState state = PanelStateManager.startMenuState;
+    private static PanelState state;
+    private static PanelStateManager states;
 
     /** current JFrame window*/
-    private static final WindowManager window = new WindowManager();
+    private static WindowManager window;
 
 
-    /** start the game by setting the default game panel, start menu panel, to current window.*/
-    public static void start() {
+    /** Registers the supplied panels and opens the current menu screen. */
+    public static void start(PanelManager panels, NavigationViewModel navigation) {
+        states = new PanelStateManager(panels);
+        window = new WindowManager();
+        navigation.addScreenListener(PanelStateController::showMenu);
+    }
+
+    private static void showMenu(ScreenId screen) {
+        state = switch (screen) {
+            case TITLE -> states.startMenuState;
+            case SAVES -> states.loadMenuState;
+            case NEW_WORLD -> states.newWorldState;
+        };
         setWindow();
     }
 
@@ -56,7 +70,7 @@ public class PanelStateController {
         PanelStateController.state = state.transition(input);
         if (state.panel == null) System.exit(0);
         setWindow();
-        if (state == PanelStateManager.gameState) {
+        if (state == states.gameState) {
             GameController.start();
         }
     }
