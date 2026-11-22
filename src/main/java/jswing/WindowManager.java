@@ -1,17 +1,14 @@
 package jswing;
 
-import states.PanelState;
-
-import javax.swing.*;
 import java.awt.Dimension;
+import java.awt.event.WindowEvent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-/**
- * WindowManager is a class that stores the game frame and show any provided state(except exitState) from the game
- */
+/** Owns the Swing frame and displays the panel selected by the application. */
 public class WindowManager {
 
-    /** the main frame of the game*/
-    private JFrame frame;
+    private final JFrame frame;
 
     public static final int MIN_FRAME_WIDTH = 800;
     public static final int MAX_FRAME_WIDTH = 1600;
@@ -26,17 +23,18 @@ public class WindowManager {
         this.frame = initializeFrame();
     }
 
-    /**
-     * show any title state provided(except exitState) by setting the contentpane of current frame to the state's panel,
-     * then refresh the frame
-     *
-     * @param state the title state to show
-     *
-     */
-    public void setWindow(PanelState state) {
-        frame.setContentPane(state.panel);
+    public void setWindow(JPanel panel) {
+        frame.setContentPane(panel);
         frame.revalidate();
         frame.repaint();
+    }
+
+    public void open() {
+        frame.setVisible(true);
+    }
+
+    public void requestClose() {
+        frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
 
     /**
@@ -67,8 +65,6 @@ public class WindowManager {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
-
-        frame.setVisible(true);
 
         return frame;
     }

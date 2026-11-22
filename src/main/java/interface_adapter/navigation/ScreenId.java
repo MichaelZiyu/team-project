@@ -1,13 +1,15 @@
 package interface_adapter.navigation;
 
 /**
- * Presentation-layer identifier for a menu destination.
+ * Presentation-layer identifier for an application screen.
  * The navigation view model publishes these values, and the Swing navigation
- * host maps each value to its corresponding panel state.
+ * host uses them to find the corresponding panel.
  */
 
 public enum ScreenId {
     TITLE,
     SAVES,
-    NEW_WORLD
+    NEW_WORLD,
+    SETTINGS,
+    GAME
 }

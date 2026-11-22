@@ -5,6 +5,7 @@ import file.LocalSaveStorage;
 import interface_adapter.browse_saves.BrowseSavesController;
 import interface_adapter.browse_saves.BrowseSavesPresenter;
 import interface_adapter.navigation.NavigationViewModel;
+import interface_adapter.navigation.ScreenId;
 import interface_adapter.save_list.SaveListViewModel;
 import interface_adapter.start_menu.StartMenuViewModel;
 import java.util.List;
@@ -44,6 +45,7 @@ public class Main {
         List<FrameSize> frameSizes = List.of(
                 new FrameSize(WindowManager.MIN_FRAME_WIDTH, WindowManager.MIN_FRAME_HEIGHT),
                 new FrameSize(WindowManager.MAX_FRAME_WIDTH, WindowManager.MAX_FRAME_HEIGHT));
+        WindowManager window = new WindowManager();
         GameSettingsAccess settingsAccess = new GameSettingsAccess() {
             @Override
             public GameSettings read() {
@@ -53,22 +55,24 @@ public class Main {
             @Override
             public void apply(GameSettings requestedSettings) {
                 FrameSize frame_size = requestedSettings.frameSize();
-                PanelStateController.setWindowSize(frame_size.width(), frame_size.height());
+                window.setWindowSize(frame_size.width(), frame_size.height());
             }
         };
         UICommandBoundary settingsCommands = new SettingsCommandHandler(settingsAccess, frameSizes);
         SettingMenuPanel settingMenu = new SettingMenuPanel(
                 settingsCommands, frameSizes,
-                () -> PanelStateController.transition("settings"),
-                () -> PanelStateController.transition("Exit"));
+                () -> navigation.requestScreen(ScreenId.SETTINGS),
+                () -> navigation.requestScreen(ScreenId.TITLE));
 
         StartMenuPanel startMenu = new StartMenuPanel(
                 startMenuModel,
                 controller::browseSaves,
                 settingMenu::openSettings,
-                () -> PanelStateController.transition("Exit"));
-        PanelManager panels = new PanelManager(startMenu, settingMenu, saveListModel, saveStorage);
-        PanelStateController.start(panels, navigation);
+                window::requestClose);
+        PanelManager panels = new PanelManager(startMenu, settingMenu, saveListModel, saveStorage, navigation);
+        PanelStateController.setGameExitHandler(() -> navigation.requestScreen(ScreenId.SAVES));
+        navigation.addScreenListener(screen -> window.setWindow(panels.panelFor(screen)));
+        window.open();
     }
 }
 

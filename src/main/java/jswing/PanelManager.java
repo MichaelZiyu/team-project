@@ -3,56 +3,70 @@ package jswing;
 import file.LocalSaveStorage;
 import game.GameController;
 import game.World;
+import interface_adapter.navigation.NavigationViewModel;
+import interface_adapter.navigation.ScreenId;
 import interface_adapter.save_list.SaveListViewModel;
 import java.io.IOException;
 import javax.swing.*;
-import states.PanelStateController;
 import use_case.save.SaveId;
 
 /**
- * Assembly of swing panels and a bridge to the existing Load action.
- * It supplies panel instances to {@code PanelStateManager}. The Load callback
- * reads the selected world through {@code LocalSaveStorage}, initializes
- * {@code GameController}, and requests the gameplay transition.
+ * Assembles the Swing panels and maps screen IDs to them.
+ * The Load action initializes and starts the selected world.
  */
 
 public class PanelManager {
 
-    public final JPanel startMenuPanel;
-    public final JPanel settingMenuPanel;
-    public final JPanel loadMenuPanel;
-    public final JPanel newWorldPanel = createNewWorldPanel();
-    public final JPanel gamePanel = createGamePanel();
+    private final JPanel startMenuPanel;
+    private final JPanel settingMenuPanel;
+    private final JPanel loadMenuPanel;
+    private final JPanel newWorldPanel;
+    private final JPanel gamePanel = createGamePanel();
+    private final NavigationViewModel navigation;
 
     public PanelManager(
             StartMenuPanel startMenuPanel, SettingMenuPanel settingMenuPanel,
-            SaveListViewModel saveList, LocalSaveStorage saveStorage) {
+            SaveListViewModel saveList, LocalSaveStorage saveStorage, NavigationViewModel navigation) {
         this.startMenuPanel = startMenuPanel;
         this.settingMenuPanel = settingMenuPanel;
+        this.navigation = navigation;
+        Runnable onBack = () -> navigation.requestScreen(ScreenId.TITLE);
+        this.newWorldPanel = createNewWorldPanel(onBack);
         this.loadMenuPanel = new SaveMenuPanel(
                 saveList,
                 selectionKey -> loadGame(saveStorage, selectionKey),
-                () -> PanelStateController.transition("Exit"));
+                onBack);
+    }
+
+    public JPanel panelFor(ScreenId screen) {
+        return switch (screen) {
+            case TITLE -> startMenuPanel;
+            case SAVES -> loadMenuPanel;
+            case NEW_WORLD -> newWorldPanel;
+            case SETTINGS -> settingMenuPanel;
+            case GAME -> gamePanel;
+        };
     }
 
     private void loadGame(LocalSaveStorage saveStorage, String selectionKey) {
         try {
             World world = saveStorage.loadSave(new SaveId(selectionKey));
             GameController.initializeGame(world, gamePanel);
+            navigation.requestScreen(ScreenId.GAME);
+            GameController.start();
         } catch (IOException | RuntimeException exception) {
+            navigation.requestScreen(ScreenId.SAVES);
             System.getLogger(PanelManager.class.getName())
                     .log(System.Logger.Level.WARNING, "Could not load the selected world", exception);
             JOptionPane.showMessageDialog(loadMenuPanel, "Could not load the selected world.",
                     "Load failed", JOptionPane.ERROR_MESSAGE);
-            return;
         }
-        PanelStateController.transition("load");
     }
 
-    private static JPanel createNewWorldPanel() {
+    private static JPanel createNewWorldPanel(Runnable onBack) {
         JPanel panel = new JPanel();
         JButton back = new JButton("Back");
-        back.addActionListener(event -> PanelStateController.transition("Exit"));
+        back.addActionListener(event -> onBack.run());
         panel.add(new JLabel("No saved worlds found."));
         panel.add(back);
         return panel;
@@ -61,19 +75,6 @@ public class PanelManager {
     private static JPanel createGamePanel() {
         JPanel panel = new JPanel();
         panel.setLayout(null);
-        return panel;
-    }
-
-    private static JPanel createPausePanel() {
-        JPanel panel = new JPanel();
-
-        JButton returnButton = new JButton("return the game");
-
-        returnButton.addActionListener(e -> {
-            PanelStateController.transition("return");
-        });
-
-        panel.add(returnButton);
         return panel;
     }
 }
