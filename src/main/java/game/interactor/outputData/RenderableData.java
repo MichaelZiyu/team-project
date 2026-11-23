@@ -15,6 +15,10 @@ public class RenderableData implements Iterable<RenderableData.RenderableItem> {
         this.map = map;
     }
 
+    public RenderableData(Texture texture, int x, int y) { this.map = new HashMap<>(Map.of(
+            texture, new HashSet<>(Set.of(new int[]{x, y}))
+    ));}
+
     public record RenderableItem(Texture texture, int x, int y) {}
 
     @Override

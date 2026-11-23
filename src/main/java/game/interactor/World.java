@@ -50,7 +50,9 @@ public class World implements GameCommandBoundary,
 
     @Override
     public void handleLocalPlayerCommand(LocalPlayerCommand command) {
+        switch (command.getCommand()) {
 
+        }
     }
 
     @Override

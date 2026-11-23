@@ -12,7 +12,7 @@ public class GameView implements GameViewBoundary {
     }
 
     @Override
-    public void updateSnapshot(RenderableData data) {
+    public void updateScreen(RenderableData data) {
         gamePanel.setSnapshot(data);
         gamePanel.repaint();
     }

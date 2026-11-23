@@ -4,5 +4,5 @@ import game.interactor.outputData.RenderableData;
 
 public interface GameViewBoundary {
 
-    void updateSnapshot(RenderableData data);
+    void updateScreen(RenderableData data);
 }

@@ -55,7 +55,7 @@ public class GameRenderer implements GameRendererBoundary {
             // swingutilities invoke later, call a boundary from menu/command to let jswing update the panel
             // provides renderable item to the boundary
             SwingUtilities.invokeLater(() -> {
-                gameViewBoundary.updateSnapshot(data);
+                gameViewBoundary.updateScreen(data);
             });
         }
 }
