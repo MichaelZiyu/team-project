@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import game.gameOutput.GameAudioBoundary.Loop;
-import game.gameOutput.GameAudioBoundary.OneShot;
+import game.gameOutput.GameViewBoundary.Loop;
+import game.gameOutput.GameViewBoundary.OneShot;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

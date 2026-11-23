@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import game.gameOutput.GameAudioBoundary.Loop;
-import game.gameOutput.GameAudioBoundary.OneShot;
+import game.gameOutput.GameViewBoundary.Loop;
+import game.gameOutput.GameViewBoundary.OneShot;
 import game.gameOutput.GameViewBoundary.ScreenItem;
 import game.interactor.gameModel.Texture;
 import game.interactor.outputData.RenderableData;
@@ -38,18 +38,21 @@ class GameRendererTest {
     }
   }
 
-  /** A silent renderer handing frames to the view through the given executor. */
+  /** A renderer handing frames to the view through the given executor. */
   private static GameRenderer renderer(GameViewBoundary view, Executor swing) {
-    return new GameRenderer(view, GameAudioBoundary.SILENT, WIDTH, HEIGHT, swing);
+    return new GameRenderer(view, WIDTH, HEIGHT, swing);
   }
 
-  /** An audio output that remembers every update it is given. */
-  private static final class FakeAudio implements GameAudioBoundary {
+  /** A view that remembers every sound it is asked to play, and ignores the pictures. */
+  private static final class FakeAudio implements GameViewBoundary {
     private final List<List<Loop>> loops = new CopyOnWriteArrayList<>();
     private final List<OneShot> played = new CopyOnWriteArrayList<>();
 
     @Override
-    public void update(List<Loop> loops, List<OneShot> now) {
+    public void show(List<ScreenItem> frame) {}
+
+    @Override
+    public void playSound(List<Loop> loops, List<OneShot> now) {
       this.loops.add(loops);
       played.addAll(now);
     }
@@ -246,7 +249,7 @@ class GameRendererTest {
   void loopingSoundsReachTheAudioEveryFrame() {
     FakeAudio audio = new FakeAudio();
     GameRenderer renderer =
-        new GameRenderer(new FakeView(), audio, WIDTH, HEIGHT, Runnable::run);
+        new GameRenderer(audio, WIDTH, HEIGHT, Runnable::run);
     renderer.submitSnapshot(sounding(List.of(new LoopingSound("weather/light-rain", 0.4))));
     renderer.renderFrame();
     renderer.renderFrame();
@@ -261,7 +264,7 @@ class GameRendererTest {
   void eachSoundEventIsPlayedOnceThoughItIsInSeveralFrames() {
     FakeAudio audio = new FakeAudio();
     GameRenderer renderer =
-        new GameRenderer(new FakeView(), audio, WIDTH, HEIGHT, Runnable::run);
+        new GameRenderer(audio, WIDTH, HEIGHT, Runnable::run);
     SoundEvent thunder = new SoundEvent(5, "weather/thunder-close", 0.9);
     renderer.submitSnapshot(sounding(List.of(), thunder));
     renderer.renderFrame();
@@ -280,7 +283,7 @@ class GameRendererTest {
   void aSoundEventInAFrameThatWasNeverDrawnIsStillPlayedFromTheNext() {
     FakeAudio audio = new FakeAudio();
     GameRenderer renderer =
-        new GameRenderer(new FakeView(), audio, WIDTH, HEIGHT, Runnable::run);
+        new GameRenderer(audio, WIDTH, HEIGHT, Runnable::run);
     SoundEvent first = new SoundEvent(1, "a", 1);
     renderer.submitSnapshot(sounding(List.of(), first));
     // Replaced before it was ever drawn; the newer frame still lists the event.
@@ -293,7 +296,7 @@ class GameRendererTest {
   void soundCarriesOnWhileTheViewIsBusy() {
     FakeAudio audio = new FakeAudio();
     Queue<Runnable> swing = new ArrayDeque<>();
-    GameRenderer renderer = new GameRenderer(new FakeView(), audio, WIDTH, HEIGHT, swing::add);
+    GameRenderer renderer = new GameRenderer(audio, WIDTH, HEIGHT, swing::add);
     renderer.submitSnapshot(sounding(List.of(), new SoundEvent(1, "a", 1)));
     renderer.renderFrame();
     renderer.submitSnapshot(sounding(List.of(), new SoundEvent(2, "b", 1)));
@@ -306,7 +309,7 @@ class GameRendererTest {
   void loopsFallSilentWhilePaused() throws InterruptedException {
     FakeAudio audio = new FakeAudio();
     GameRenderer renderer =
-        new GameRenderer(new FakeView(), audio, WIDTH, HEIGHT, Runnable::run);
+        new GameRenderer(audio, WIDTH, HEIGHT, Runnable::run);
     renderer.submitSnapshot(sounding(List.of(new LoopingSound("rain", 1))));
     renderer.start();
     Thread.sleep(200);
@@ -320,16 +323,24 @@ class GameRendererTest {
   }
 
   @Test
-  void aFailingAudioDoesNotStopTheDrawing() {
-    FakeView view = new FakeView();
-    GameAudioBoundary broken =
-        (loops, now) -> {
-          throw new IllegalStateException("no sound device");
+  void aFailingSoundDoesNotStopTheDrawing() {
+    List<List<ScreenItem>> shown = new ArrayList<>();
+    GameViewBoundary broken =
+        new GameViewBoundary() {
+          @Override
+          public void show(List<ScreenItem> frame) {
+            shown.add(frame);
+          }
+
+          @Override
+          public void playSound(List<Loop> loops, List<OneShot> now) {
+            throw new IllegalStateException("no sound device");
+          }
         };
-    GameRenderer renderer = new GameRenderer(view, broken, WIDTH, HEIGHT, Runnable::run);
+    GameRenderer renderer = new GameRenderer(broken, WIDTH, HEIGHT, Runnable::run);
     renderer.submitSnapshot(world(0, 0, new RenderableItem(texture(10, 10), 0, 0)));
     renderer.renderFrame();
-    assertEquals(1, view.shown.size());
+    assertEquals(1, shown.size());
   }
 }
 

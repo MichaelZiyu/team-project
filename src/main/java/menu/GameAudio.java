@@ -1,6 +1,7 @@
 package menu;
 
-import game.gameOutput.GameAudioBoundary;
+import game.gameOutput.GameViewBoundary.Loop;
+import game.gameOutput.GameViewBoundary.OneShot;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
- * Plays the game's sound through Java's built-in sound, as the renderer asks.
+ * Plays the game's sound through Java's built-in sound, for {@link GameView}.
  *
  * <p>Sounds are 16-bit WAV files under {@link #SOUND_FOLDER} among the game's resources, named
  * without their ending: {@code "weather/light-rain"} is {@code sounds/weather/light-rain.wav}.
@@ -38,7 +39,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  * <p>A missing or unreadable sound, or a computer with no sound, is reported once and then simply
  * not heard: sound never stops the game.
  */
-public final class GameAudio implements GameAudioBoundary {
+public final class GameAudio {
 
   /** Where sounds are among the game's resources. */
   static final String SOUND_FOLDER = "/sounds/";
@@ -67,7 +68,13 @@ public final class GameAudio implements GameAudioBoundary {
   /** The sounds played once that are still playing, oldest first. */
   private final Deque<Clip> oneShots = new ArrayDeque<>();
 
-  @Override
+  /**
+   * Brings the sound up to date: every loop listed plays at its volume, every loop not listed
+   * stops, and each one-shot starts playing.
+   *
+   * @param wanted the loops to be heard now; each name at most once
+   * @param now the sounds to start playing now, each heard once
+   */
   public synchronized void update(List<Loop> wanted, List<OneShot> now) {
     Set<String> heard = new HashSet<>();
     for (Loop loop : wanted) {

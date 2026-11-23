@@ -1,7 +1,7 @@
 package game.gameOutput;
 
-import game.gameOutput.GameAudioBoundary.Loop;
-import game.gameOutput.GameAudioBoundary.OneShot;
+import game.gameOutput.GameViewBoundary.Loop;
+import game.gameOutput.GameViewBoundary.OneShot;
 import game.gameOutput.GameViewBoundary.ScreenItem;
 import game.interactor.gameModel.Texture;
 import game.interactor.outputData.RenderableData;
@@ -35,10 +35,10 @@ import javax.swing.SwingUtilities;
  * camera is rounded to whole pixels once per frame, so everything moves together. Items entirely
  * off the screen are left out. Layers fixed to the screen are drawn where they are.
  *
- * <p>Each draw also brings the sound up to date ({@link GameAudioBoundary}), even when the picture
- * is skipped: the frame's looping sounds at their volumes, and its sounds played once. A frame
- * keeps a sound played once for a moment after it happens, so the same one can appear in several
- * frames; each is played the first time its number is seen, and never again.
+ * <p>Each draw also brings the sound up to date ({@link GameViewBoundary#playSound}), even when
+ * the picture is skipped: the frame's looping sounds at their volumes, and its sounds played once.
+ * A frame keeps a sound played once for a moment after it happens, so the same one can appear in
+ * several frames; each is played the first time its number is seen, and never again.
  *
  * <p>{@link #start} starts the drawing thread; {@link #pause} and {@link #resume} stop and restart
  * the drawing, for example while a menu is open. While paused, looping sounds are silent.
@@ -48,7 +48,6 @@ public final class GameRenderer implements GameRendererBoundary {
   private static final long NANOS_PER_SECOND = 1_000_000_000L;
 
   private final GameViewBoundary view;
-  private final GameAudioBoundary audio;
   private final int viewWidthPx;
   private final int viewHeightPx;
   private final Executor swing;
@@ -62,47 +61,27 @@ public final class GameRenderer implements GameRendererBoundary {
   private long lastSoundEvent = Long.MIN_VALUE;
 
   /**
-   * Creates a silent renderer drawing into a view of a given size.
+   * Creates a renderer drawing into a view of a given size.
    *
-   * @param view where frames are shown
+   * @param view where frames are shown and their sound played
    * @param viewWidthPx the view's width, in pixels
    * @param viewHeightPx the view's height, in pixels
    */
   public GameRenderer(GameViewBoundary view, int viewWidthPx, int viewHeightPx) {
-    this(view, GameAudioBoundary.SILENT, viewWidthPx, viewHeightPx);
-  }
-
-  /**
-   * Creates a renderer drawing into a view of a given size, and playing sound.
-   *
-   * @param view where frames are shown
-   * @param audio where sound is played
-   * @param viewWidthPx the view's width, in pixels
-   * @param viewHeightPx the view's height, in pixels
-   */
-  public GameRenderer(
-      GameViewBoundary view, GameAudioBoundary audio, int viewWidthPx, int viewHeightPx) {
-    this(view, audio, viewWidthPx, viewHeightPx, SwingUtilities::invokeLater);
+    this(view, viewWidthPx, viewHeightPx, SwingUtilities::invokeLater);
   }
 
   /**
    * Creates a renderer that hands frames to the view through a given executor; used by tests,
    * which run the hand-over themselves instead of on the Swing thread.
    *
-   * @param view where frames are shown
-   * @param audio where sound is played
+   * @param view where frames are shown and their sound played
    * @param viewWidthPx the view's width, in pixels
    * @param viewHeightPx the view's height, in pixels
    * @param swing runs the hand-over to the view; normally the Swing thread
    */
-  GameRenderer(
-      GameViewBoundary view,
-      GameAudioBoundary audio,
-      int viewWidthPx,
-      int viewHeightPx,
-      Executor swing) {
+  GameRenderer(GameViewBoundary view, int viewWidthPx, int viewHeightPx, Executor swing) {
     this.view = view;
-    this.audio = audio;
     this.viewWidthPx = viewWidthPx;
     this.viewHeightPx = viewHeightPx;
     this.swing = swing;
@@ -231,7 +210,7 @@ public final class GameRenderer implements GameRendererBoundary {
   /** Brings the sound up to date, never letting a sound problem stop the drawing. */
   private void playQuietly(List<Loop> loops, List<OneShot> now) {
     try {
-      audio.update(loops, now);
+      view.playSound(loops, now);
     } catch (RuntimeException e) {
       System.err.println("Could not play sound: " + e);
     }
