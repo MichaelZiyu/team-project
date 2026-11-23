@@ -1,7 +1,8 @@
 package menu;
 
 import game.gameOutput.GameViewBoundary;
-import game.interactor.outputData.RenderableData;
+
+import java.util.List;
 
 public class GameView implements GameViewBoundary {
 
@@ -12,8 +13,8 @@ public class GameView implements GameViewBoundary {
     }
 
     @Override
-    public void updateSnapshot(RenderableData data) {
-        gamePanel.setSnapshot(data);
+    public void show(List<ScreenItem> frame) {
+        gamePanel.setFrame(frame);
         gamePanel.repaint();
     }
 }
