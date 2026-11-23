@@ -1,4 +1,10 @@
 package game.interactor.gameModel.scene;
 
-public class Filter extends Scene{
+import game.interactor.World;
+
+public class Filter extends Scene {
+
+    @Override
+    public void tick(World world) {
+    }
 }
