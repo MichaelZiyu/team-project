@@ -9,8 +9,10 @@ package game.interactor.gameModel.weather;
  * world decides how to apply them.
  */
 public enum Weather {
-  /** No precipitation: clear or cloudy skies. */
+  /** No precipitation and a clear sky. */
   CLEAR(0, 1),
+  /** No precipitation, but cloud dims the sun and greys the sky. */
+  CLOUDY(0.55, 0.75),
   /** Rain falling, with splashes on the ground. */
   RAIN(0.85, 0.55),
   /** Snow falling gently. */
@@ -18,7 +20,9 @@ public enum Weather {
   /** Heavy rain under a dark sky, with lightning. */
   THUNDERSTORM(1, 0.4),
   /** Heavy, wind-driven snow that hides the distance. */
-  BLIZZARD(1, 0.35);
+  BLIZZARD(1, 0.35),
+  /** Fog lying in banks, thick in some places and thin in others, drifting slowly. */
+  FOG(0.6, 0.7);
 
   private final double cloudCover;
   private final double saturation;

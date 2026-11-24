@@ -29,6 +29,10 @@ import java.util.List;
  * from {@link #MIN_FLAKE_PIXEL_PX} far below the camera to {@link #MAX_FLAKE_PIXEL_PX} close to
  * it, keeping the game's pixel-art look.
  *
+ * <p>Fog ({@link FogField}) lies in banks: thick in some places, thin or clear in others, drifting
+ * slowly east. Thick fog is a warm, pale cream by day and thin fog a cooler blue-grey, as in a
+ * misty morning; at night both dim to a dark blue-grey, so fog never glows in the dark.
+ *
  * <p>Lightning brightens the whole scene for a split second rather than covering it in white: the
  * storm's darkening lifts, so the terrain shows at full brightness with all its detail, and a cool
  * light is added on top that the terrain still shows through.
@@ -67,6 +71,42 @@ public final class WeatherLayer {
 
   /** The sky during a blizzard: a pale white-out at about 33%. */
   static final Color BLIZZARD_TINT = new Color(215, 222, 235, 85);
+
+  /** The sky under cloud: a soft grey at about 12%. */
+  static final Color CLOUD_TINT = new Color(110, 118, 132, 30);
+
+  /** The sky in fog: a faint, even haze, under the fog's own banks. */
+  static final Color FOG_TINT = new Color(205, 210, 218, 22);
+
+  /** The colour of thick fog in full sunlight: a warm, pale cream. */
+  static final Color FOG_DENSE_DAY = new Color(236, 226, 208);
+
+  /** The colour of thin fog in full sunlight: a cooler blue-grey. */
+  static final Color FOG_THIN_DAY = new Color(176, 190, 210);
+
+  /** The colour of thick fog with no sunlight at all, at night. */
+  static final Color FOG_DENSE_NIGHT = new Color(84, 92, 112);
+
+  /** The colour of thin fog with no sunlight at all, at night. */
+  static final Color FOG_THIN_NIGHT = new Color(44, 52, 72);
+
+  /** How much fog hides where it is thinnest, at the usual amount. */
+  static final double FOG_THIN_OPACITY = 0.08;
+
+  /** How much fog hides where it is thickest, at the usual amount. */
+  static final double FOG_DENSE_OPACITY = 0.85;
+
+  /** How fast fog rolls in or clears, as a share of the change per second; slower than the sky. */
+  static final double FOG_FADE_PER_SECOND = 0.25;
+
+  /**
+   * How far apart fog's thickness is worked out, in pixels; between those points it is blended
+   * smoothly. Fog has no sharp detail, so this saves working it out at every pixel.
+   */
+  static final int FOG_CELL_PX = 12;
+
+  /** How many steps of thickness fog is drawn with. */
+  private static final int FOG_LEVELS = 256;
 
   /** The colour of snowflakes in full sunlight. */
   static final Color SNOW_COLOUR = new Color(240, 246, 255);
@@ -120,6 +160,12 @@ public final class WeatherLayer {
   private final RainField rain;
   private final SnowField snow;
   private final LightningFlash lightning;
+  private final FogField fog;
+  private final int[] fogShades = new int[FOG_LEVELS + 1];
+  private final int[] fogGrid;
+  private final int[] fogRow;
+  private final int[] fogLine;
+  private final int fogGridWidth;
   private final BufferedImage[] images = new BufferedImage[FRAME_IMAGES];
   private int nextImage;
   private BufferedImage lastImage;
@@ -139,6 +185,8 @@ public final class WeatherLayer {
   private double tintAmount;
   private Color tintTarget = RAIN_TINT;
   private double tintTargetAmount;
+  private double fogAmount;
+  private double fogTargetAmount;
   private List<RenderableItem> splashBlockers = List.of();
   private LightningListener lightningListener = intensity -> {};
   private int heardStrikes;
@@ -159,6 +207,11 @@ public final class WeatherLayer {
     this.rain = new RainField(perspective, viewWidthPx, viewHeightPx, seed);
     this.snow = new SnowField(perspective, viewWidthPx, viewHeightPx, seed + 2);
     this.lightning = new LightningFlash(seed + 1);
+    this.fog = new FogField(seed + 3);
+    this.fogGridWidth = width / FOG_CELL_PX + 3;
+    this.fogGrid = new int[fogGridWidth * (height / FOG_CELL_PX + 3)];
+    this.fogRow = new int[fogGridWidth];
+    this.fogLine = new int[width];
     for (int i = 0; i < FRAME_IMAGES; i++) {
       images[i] = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }
@@ -182,6 +235,7 @@ public final class WeatherLayer {
     baseRain = RainStyle.NONE;
     baseSnow = SnowStyle.NONE;
     tintTargetAmount = 1;
+    fogTargetAmount = weather == Weather.FOG ? 1 : 0;
     if (weather != Weather.CLEAR) {
       // Clearing up keeps the old cloud cover, so it fades away with the sky's darkening.
       fadingCloudCover = weather.cloudCover();
@@ -202,6 +256,12 @@ public final class WeatherLayer {
       case BLIZZARD:
         baseSnow = SnowStyle.BLIZZARD;
         tintTarget = BLIZZARD_TINT;
+        break;
+      case CLOUDY:
+        tintTarget = CLOUD_TINT;
+        break;
+      case FOG:
+        tintTarget = FOG_TINT;
         break;
       case CLEAR:
       default:
@@ -257,9 +317,10 @@ public final class WeatherLayer {
   }
 
   /**
-   * Makes rain or snow heavier or lighter than usual for its weather. The change is gradual.
+   * Makes rain or snow heavier or lighter than usual for its weather, or fog thicker or thinner.
+   * The change to rain and snow is gradual.
    *
-   * @param amount how many drops, compared with usual: 0 is none, 1 usual
+   * @param amount how many drops, or how thick the fog, compared with usual: 0 is none, 1 usual
    * @throws IllegalArgumentException if {@code amount} is negative
    */
   public void setRainAmount(double amount) {
@@ -280,10 +341,10 @@ public final class WeatherLayer {
   }
 
   /**
-   * Makes rain or snow fall faster or slower than usual for its weather; faster rain also leaves
-   * longer streaks.
+   * Makes rain or snow fall faster or slower than usual for its weather, and fog drift faster or
+   * slower; faster rain also leaves longer streaks.
    *
-   * @param speed how fast drops or flakes fall, compared with usual: 1 is usual
+   * @param speed how fast drops or flakes fall, or fog drifts, compared with usual: 1 is usual
    * @throws IllegalArgumentException if {@code speed} is not positive
    */
   public void setRainSpeed(double speed) {
@@ -291,6 +352,7 @@ public final class WeatherLayer {
       throw new IllegalArgumentException("speed must be positive: " + speed);
     }
     rainSpeed = speed;
+    fog.setSpeed(speed);
     applyRain();
   }
 
@@ -432,22 +494,38 @@ public final class WeatherLayer {
     rain.update(seconds, this.cameraX, this.cameraY);
     snow.update(seconds, this.cameraX, this.cameraY);
     lightning.update(seconds);
+    fog.update(seconds);
     if (lightning.strikeCount() != heardStrikes) {
       heardStrikes = lightning.strikeCount();
       lightningListener.struck(lightning.strikeIntensity());
     }
     double step = TINT_FADE_PER_SECOND * seconds;
     tintAmount += Math.max(-step, Math.min(step, tintTargetAmount - tintAmount));
+    double fogStep = FOG_FADE_PER_SECOND * seconds;
+    fogAmount += Math.max(-fogStep, Math.min(fogStep, fogTargetAmount - fogAmount));
+  }
+
+  /**
+   * Returns how much fog there is right now, as it rolls in or clears.
+   *
+   * @return from 0 (none) to 1 (as thick as the weather makes it)
+   */
+  double fogAmount() {
+    return fogAmount;
   }
 
   /**
    * Returns whether there is any weather to show: rain or snow in the air or landed, a darkened
-   * sky, or a lightning flash.
+   * sky, fog, or a lightning flash.
    *
    * @return {@code false} for a clear sky, when {@link #paintFrame} has nothing to paint
    */
   public boolean isShowing() {
-    return !rain.isEmpty() || !snow.isEmpty() || tintAmount > 0 || lightning.brightness() > 0;
+    return !rain.isEmpty()
+        || !snow.isEmpty()
+        || tintAmount > 0
+        || fogAmount > 0
+        || lightning.brightness() > 0;
   }
 
   /**
@@ -596,8 +674,12 @@ public final class WeatherLayer {
       // lightning flash lifts the darkening, so the whole scene brightens for a moment.
       double flash = lightning.brightness();
       g.setComposite(AlphaComposite.Src);
-      g.setColor(scaleAlpha(tintTarget, tintAmount * (1 - flash)));
+      Color tint = scaleAlpha(tintTarget, tintAmount * (1 - flash));
+      g.setColor(tint);
       g.fillRect(0, 0, width, height);
+      if (fogAmount > 0) {
+        paintFog(image, tint);
+      }
       g.setComposite(AlphaComposite.SrcOver);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       Line2D.Double line = new Line2D.Double();
@@ -645,6 +727,100 @@ public final class WeatherLayer {
       }
     } finally {
       g.dispose();
+    }
+  }
+
+  /**
+   * Paints the fog, over the sky's tint, into the whole image, replacing what is there.
+   *
+   * <p>Thickness is worked out every {@link #FOG_CELL_PX} pixels on a grid fixed to the world, so
+   * it does not shimmer as the camera moves, and blended smoothly between grid points. Each
+   * thickness has its colour worked out once per frame ({@link #shadeFog}).
+   */
+  private void paintFog(BufferedImage image, Color tint) {
+    shadeFog(tint);
+    // The world position of the image's top-left pixel; world y points up, image rows down.
+    int leftWorld = (int) (cameraX - width / 2);
+    int topWorld = (int) (cameraY + height / 2);
+    int gridLeft = Math.floorDiv(leftWorld, FOG_CELL_PX) * FOG_CELL_PX;
+    int gridTop = -Math.floorDiv(-topWorld, FOG_CELL_PX) * FOG_CELL_PX;
+    int gridHeight = fogGrid.length / fogGridWidth;
+    for (int row = 0; row < gridHeight; row++) {
+      for (int column = 0; column < fogGridWidth; column++) {
+        double thickness =
+            fog.thickness(gridLeft + column * FOG_CELL_PX, gridTop - row * FOG_CELL_PX);
+        fogGrid[row * fogGridWidth + column] = (int) Math.round(thickness * FOG_LEVELS);
+      }
+    }
+    int cellArea = FOG_CELL_PX * FOG_CELL_PX;
+    int across = leftWorld - gridLeft;
+    int down = gridTop - topWorld;
+    for (int y = 0; y < height; y++) {
+      int gridRow = (down + y) / FOG_CELL_PX;
+      int belowWeight = (down + y) % FOG_CELL_PX;
+      int above = gridRow * fogGridWidth;
+      int below = above + fogGridWidth;
+      for (int column = 0; column < fogGridWidth; column++) {
+        fogRow[column] =
+            fogGrid[above + column] * (FOG_CELL_PX - belowWeight)
+                + fogGrid[below + column] * belowWeight;
+      }
+      for (int x = 0; x < width; x++) {
+        int gridColumn = (across + x) / FOG_CELL_PX;
+        int rightWeight = (across + x) % FOG_CELL_PX;
+        int blended =
+            fogRow[gridColumn] * (FOG_CELL_PX - rightWeight)
+                + fogRow[gridColumn + 1] * rightWeight;
+        fogLine[x] = fogShades[blended / cellArea];
+      }
+      image.getRaster().setDataElements(0, y, width, 1, fogLine);
+    }
+  }
+
+  /**
+   * Works out the colour, as an ARGB pixel, of each step of fog thickness laid over the sky's
+   * tint: lit by the sun, cream where thick and blue-grey where thin, and as see-through as the
+   * thickness, the amount ({@link #setRainAmount}) and how far the fog has rolled in say.
+   */
+  private void shadeFog(Color tint) {
+    double tintAlpha = tint.getAlpha() / 255.0;
+    for (int level = 0; level <= FOG_LEVELS; level++) {
+      double thickness = (double) level / FOG_LEVELS;
+      double opacity = FOG_THIN_OPACITY + (FOG_DENSE_OPACITY - FOG_THIN_OPACITY) * thickness;
+      // More fog is like more layers of it, each hiding the same share of what is behind.
+      double fogAlpha = fogAmount * (1 - Math.pow(1 - opacity, rainAmount));
+      double alpha = fogAlpha + tintAlpha * (1 - fogAlpha);
+      int[] rgb = new int[3];
+      for (int channel = 0; channel < 3; channel++) {
+        double dense =
+            mix(channel(FOG_DENSE_NIGHT, channel), channel(FOG_DENSE_DAY, channel), sunlight);
+        double thin =
+            mix(channel(FOG_THIN_NIGHT, channel), channel(FOG_THIN_DAY, channel), sunlight);
+        double fogColour = thin + (dense - thin) * thickness;
+        // The fog over the tint, "over" blending as Java's drawing does.
+        rgb[channel] =
+            alpha <= 0
+                ? 0
+                : (int)
+                    Math.round(
+                        (fogColour * fogAlpha
+                                + channel(tint, channel) * tintAlpha * (1 - fogAlpha))
+                            / alpha);
+      }
+      int a = (int) Math.round(255 * alpha);
+      fogShades[level] = a << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2];
+    }
+  }
+
+  /** Returns a colour's red (0), green (1) or blue (2) part. */
+  private static int channel(Color colour, int channel) {
+    switch (channel) {
+      case 0:
+        return colour.getRed();
+      case 1:
+        return colour.getGreen();
+      default:
+        return colour.getBlue();
     }
   }
 
