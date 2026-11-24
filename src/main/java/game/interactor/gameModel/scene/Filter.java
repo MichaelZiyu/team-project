@@ -20,7 +20,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Everything laid over the whole view: the time of day and the weather.
@@ -59,6 +61,9 @@ public class Filter extends Scene {
   private final ThunderSound thunder;
   private WeatherLayer weather;
   private Weather currentWeather = Weather.CLEAR;
+
+  /** Weather asked for from another thread, applied at the next tick; null if none is waiting. */
+  private final AtomicReference<Weather> requestedWeather = new AtomicReference<>();
   private Ground ground = Ground.FLAT;
   private int viewWidth = DEFAULT_VIEW_WIDTH;
   private int viewHeight = DEFAULT_VIEW_HEIGHT;
@@ -92,6 +97,10 @@ public class Filter extends Scene {
    */
   @Override
   public void tick(World world) {
+    Weather requested = requestedWeather.getAndSet(null);
+    if (requested != null && requested != currentWeather) {
+      setWeather(requested);
+    }
     double seconds = 1.0 / GameSettings.FPS;
     clock.tick();
     weather.setSunlight(sun.daylight());
@@ -155,6 +164,17 @@ public class Filter extends Scene {
     this.currentWeather = weather;
     this.weather.setWeather(weather);
     weatherSound.setWeather(weather);
+  }
+
+  /**
+   * Asks for the weather to change at the next tick. Unlike {@link #setWeather}, this is safe to
+   * call from any thread, such as one waiting on a weather service; if it is called again before
+   * the tick, the later weather wins.
+   *
+   * @param weather the new weather
+   */
+  public void requestWeather(Weather weather) {
+    requestedWeather.set(Objects.requireNonNull(weather, "weather"));
   }
 
   /**

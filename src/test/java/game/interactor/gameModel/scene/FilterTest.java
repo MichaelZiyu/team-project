@@ -114,4 +114,24 @@ class FilterTest {
     assertEquals(Weather.SNOW, filter.getWeather());
     assertEquals(Weather.SNOW, filter.weatherLayer().getWeather());
   }
+
+  @Test
+  void weatherAskedForFromAnotherThreadArrivesAtTheNextTick() throws Exception {
+    Filter filter = new Filter(1);
+    Thread service = new Thread(() -> filter.requestWeather(Weather.FOG));
+    service.start();
+    service.join();
+    assertEquals(Weather.CLEAR, filter.getWeather(), "not before the tick");
+    filter.tick(null);
+    assertEquals(Weather.FOG, filter.getWeather());
+  }
+
+  @Test
+  void theLatestWeatherAskedForWins() {
+    Filter filter = new Filter(1);
+    filter.requestWeather(Weather.RAIN);
+    filter.requestWeather(Weather.SNOW);
+    filter.tick(null);
+    assertEquals(Weather.SNOW, filter.getWeather());
+  }
 }
