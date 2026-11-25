@@ -17,7 +17,7 @@ public class World implements GameCommandBoundary,
         GameSnapshotBoundary,
         GameSynchronizationBoundary,
         GameTickBoundary,
-        InitializeWorldBoundary {
+        InitializeWorldBoundary{
 
     private List<Scene> sceneList = List.of(
             new Filter(),
