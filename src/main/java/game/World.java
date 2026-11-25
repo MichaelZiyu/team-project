@@ -107,8 +107,12 @@ public class World implements Serializable {
 
                 new Scene("entityStats"), // hp
 
+                new Scene("treesInFront", map.treesInFront()), // trees nearer the screen's bottom than the player
+
                 new StatusScene(entities), // character status textures
                 new ActionScene(entities), // character movement textures
+
+                new Scene("treesBehind", map.treesBehind()), // trees further up the screen than the player
 
                 new Scene("interactable"), // cave
                 new Scene("terrain", map), // terrain map
@@ -116,7 +120,7 @@ public class World implements Serializable {
                 new Scene("Background", List.of(background)) // background picture
         );
         // hide the background as it is only used in front 2d.
-        sceneLayers.get(8).setVisible(false);
+        sceneLayers.get(10).setVisible(false);
         // TODO only delete this after status state finished
         sceneLayers.get(3).setVisible(false);
 
