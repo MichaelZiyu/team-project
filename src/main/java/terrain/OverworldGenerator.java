@@ -57,6 +57,7 @@ public final class OverworldGenerator implements ChunkGenerator {
   /** The lowest height at which mountain tops are covered in snow. */
   static final int SNOW_LINE = 8;
 
+  private final long seed;
   private final PerlinNoise elevationNoise;
   private final PerlinNoise temperatureNoise;
   private final PerlinNoise moistureNoise;
@@ -67,6 +68,7 @@ public final class OverworldGenerator implements ChunkGenerator {
    * @param seed the world seed; equal seeds always produce identical worlds
    */
   public OverworldGenerator(long seed) {
+    this.seed = seed;
     this.elevationNoise = new PerlinNoise(seed);
     this.temperatureNoise = new PerlinNoise(seed ^ TEMPERATURE_SALT);
     this.moistureNoise = new PerlinNoise(seed ^ MOISTURE_SALT);
@@ -85,6 +87,15 @@ public final class OverworldGenerator implements ChunkGenerator {
       }
     }
     return builder.build();
+  }
+
+  /**
+   * Returns the seed this world is generated from.
+   *
+   * @return the world seed
+   */
+  public long seed() {
+    return seed;
   }
 
   /**

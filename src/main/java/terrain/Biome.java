@@ -1,8 +1,11 @@
 package terrain;
 
-/** A region of the overworld with its own kind of landscape. */
+/** A region of the world with its own kind of landscape. */
 public enum Biome {
   PLAINS,
   DESERT,
-  MOUNTAINS
+  MOUNTAINS,
+
+  /** Underground, inside a cave ({@link CaveTerrain}). */
+  CAVE
 }

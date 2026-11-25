@@ -14,6 +14,7 @@ import java.util.Map;
 import jswing.Texture;
 import org.junit.jupiter.api.Test;
 import terrain.BlockType;
+import terrain.CaveEntrance;
 import terrain.OverworldTerrain;
 import terrain.Terrain;
 import terrain.TerrainCoordinates;
@@ -43,9 +44,14 @@ class TerrainSceneTest {
     private boolean isShadow;
     private List<Area> shadowLayers;
     private Edge rimSide;
+    private double rimLight;
     private Edge occlusionEdge;
     private Corner occlusionCorner;
     private boolean isSunlight;
+    private boolean isGlow;
+    private boolean isFlower;
+    private boolean isCave;
+    private boolean isFaceDarkening;
     private boolean isFaceShade;
 
     /** Returns whether this piece lies over its tile's top, rather than being the top or a face. */
@@ -54,7 +60,10 @@ class TerrainSceneTest {
           || rimSide != null
           || occlusionEdge != null
           || occlusionCorner != null
-          || isSunlight;
+          || isSunlight
+          || isGlow
+          || isFlower
+          || isCave;
     }
 
     FakePiece(boolean isFace, int blockX, int blockY, BlockType type, int value) {
@@ -116,7 +125,8 @@ class TerrainSceneTest {
           }
 
           @Override
-          public Renderable shadow(int blockX, int blockY, int height, List<Area> layers) {
+          public Renderable shadow(
+              int blockX, int blockY, int height, List<Area> layers, double strength) {
             piecesCreated++;
             FakePiece shadow = new FakePiece(false, blockX, blockY, null, height);
             shadow.isShadow = true;
@@ -125,7 +135,7 @@ class TerrainSceneTest {
           }
 
           @Override
-          public Renderable sunlight(int blockX, int blockY, int height) {
+          public Renderable sunlight(int blockX, int blockY, int height, double strength) {
             piecesCreated++;
             FakePiece sunlight = new FakePiece(false, blockX, blockY, null, height);
             sunlight.isSunlight = true;
@@ -133,11 +143,45 @@ class TerrainSceneTest {
           }
 
           @Override
+          public Renderable caveEntrance(
+              int blockX, int blockY, int height, CaveEntrance entrance, BlockType surface) {
+            piecesCreated++;
+            FakePiece cave = new FakePiece(false, blockX, blockY, null, height);
+            cave.isCave = true;
+            return cave;
+          }
+
+          @Override
+          public Renderable flower(int blockX, int blockY, int height, String name) {
+            piecesCreated++;
+            FakePiece flower = new FakePiece(false, blockX, blockY, null, height);
+            flower.isFlower = true;
+            return flower;
+          }
+
+          @Override
+          public Renderable topGlow(int blockX, int blockY, int height, double amount) {
+            piecesCreated++;
+            FakePiece glow = new FakePiece(false, blockX, blockY, null, height);
+            glow.isGlow = true;
+            return glow;
+          }
+
+          @Override
+          public Renderable faceDarkening(int blockX, int blockY, int level, double amount) {
+            piecesCreated++;
+            FakePiece dark = new FakePiece(false, blockX, blockY, null, level);
+            dark.isFaceDarkening = true;
+            return dark;
+          }
+
+          @Override
           public Renderable rim(
-              int blockX, int blockY, BlockType type, int height, Edge side) {
+              int blockX, int blockY, BlockType type, int height, Edge side, double light) {
             piecesCreated++;
             FakePiece rim = new FakePiece(false, blockX, blockY, type, height);
             rim.rimSide = side;
+            rim.rimLight = light;
             return rim;
           }
 
@@ -167,6 +211,15 @@ class TerrainSceneTest {
         });
   }
 
+  /**
+   * Returns the piece after the one at {@code i}, stepping over a flower or cave opening: light
+   * lies over those on a tile's top as well as the top itself.
+   */
+  private static FakePiece topAfter(List<FakePiece> all, int i) {
+    FakePiece next = all.get(i + 1);
+    return next.isFlower || next.isCave ? all.get(i + 2) : next;
+  }
+
   private static List<FakePiece> pieces(TerrainScene scene) {
     List<FakePiece> pieces = new ArrayList<>();
     for (Renderable piece : scene) {
@@ -178,7 +231,7 @@ class TerrainSceneTest {
   private static Map<String, FakePiece> topsByPosition(TerrainScene scene) {
     Map<String, FakePiece> tops = new HashMap<>();
     for (FakePiece piece : pieces(scene)) {
-      if (!piece.isFace && !piece.isOverlay() && !piece.isFaceShade) {
+      if (!piece.isFace && !piece.isOverlay() && !piece.isFaceShade && !piece.isFaceDarkening) {
         tops.put(piece.blockX + "," + piece.blockY, piece);
       }
     }
@@ -403,6 +456,60 @@ class TerrainSceneTest {
   }
 
   @Test
+  void rimsFacingTheSunAreLitAndNightHasNoSunlightOrShadows() {
+    TerrainLight evening = new TerrainLight(40, -20, 1, 1, true, 0, 0);
+    TerrainScene scene = newScene();
+    scene.update(-46_800, 26_100, evening);
+    int lit = 0;
+    for (FakePiece piece : pieces(scene)) {
+      if (piece.rimSide != null) {
+        assertEquals(evening.edgeLight(piece.rimSide), piece.rimLight, piece.rimSide.name());
+        lit += piece.rimLight > 0 ? 1 : 0;
+      }
+    }
+    assertTrue(lit > 0, "the evening sun lights some rims");
+    scene.update(-46_800, 26_100, TerrainLight.NIGHT);
+    for (FakePiece piece : pieces(scene)) {
+      assertTrue(!piece.isSunlight && !piece.isShadow && piece.rimLight == 0, "nothing lit at night");
+    }
+  }
+
+  @Test
+  void aLightningStrikeGlowsEveryTopAndDarkensEveryFaceWithSharpShadows() {
+    TerrainScene scene = newScene();
+    scene.update(-46_800, 26_100, TerrainLight.lightningStrike(1.0));
+    List<FakePiece> all = pieces(scene);
+    int glows = 0;
+    int darkened = 0;
+    int faces = 0;
+    for (int i = 0; i < all.size(); i++) {
+      FakePiece piece = all.get(i);
+      if (piece.isGlow) {
+        glows++;
+        FakePiece top = topAfter(all, i);
+        assertTrue(!top.isFace && !top.isOverlay(), "the glow lies right on its top");
+      }
+      if (piece.isFaceDarkening) {
+        darkened++;
+        assertTrue(all.get(i + 1).isFaceShade, "darkening comes with the face's shade");
+      }
+      if (piece.isFace) {
+        faces++;
+      }
+      assertTrue(!piece.isSunlight, "a strike has no sunlight");
+      if (piece.isShadow) {
+        assertEquals(1, piece.shadowLayers.size(), "strike shadows are sharp: one layer");
+      }
+      if (piece.rimSide != null) {
+        assertEquals(0, piece.rimLight, "no sunlit rims in a strike");
+      }
+    }
+    assertEquals(topsByPosition(scene).size(), glows);
+    assertEquals(faces, darkened);
+    assertTrue(faces > 0);
+  }
+
+  @Test
   void everyTopIsLitBySunlightRightBeforeIt() {
     TerrainScene scene = newScene();
     scene.update(0, 0);
@@ -411,7 +518,7 @@ class TerrainSceneTest {
     for (int i = 0; i < all.size(); i++) {
       if (all.get(i).isSunlight) {
         sunlit++;
-        FakePiece top = all.get(i + 1);
+        FakePiece top = topAfter(all, i);
         assertTrue(!top.isFace && !top.isOverlay(), "sunlight must come right before its top");
         assertEquals(all.get(i).blockX, top.blockX);
         assertEquals(all.get(i).blockY, top.blockY);
@@ -517,4 +624,33 @@ class TerrainSceneTest {
     assertNotSame(original, again);
     assertEquals(original.type, again.type);
   }
+
+  @Test
+  void aboutOneGrassTileInTwelveHasAFlowerJustAboveItsTop() {
+    TerrainScene scene = newScene();
+    scene.update(0, 0);
+    int grassTiles = 0;
+    int flowers = 0;
+    List<FakePiece> all = pieces(scene);
+    for (int i = 0; i < all.size(); i++) {
+      FakePiece piece = all.get(i);
+      if (!piece.isFace && !piece.isOverlay() && piece.type == BlockType.GRASS) {
+        grassTiles++;
+      }
+      if (piece.isFlower) {
+        flowers++;
+        FakePiece next = all.get(i + 1);
+        assertTrue(!next.isFace && !next.isOverlay(), "a flower lies just above its tile's top");
+        assertEquals(piece.blockX, next.blockX);
+        assertEquals(piece.blockY, next.blockY);
+      }
+    }
+    if (Flowers.names().isEmpty()) {
+      assertEquals(0, flowers, "no flower images, so no flowers");
+    } else {
+      double share = flowers / (double) grassTiles;
+      assertTrue(share > 0.5 / Flowers.ONE_IN && share < 2.0 / Flowers.ONE_IN, "share " + share);
+    }
+  }
 }
+

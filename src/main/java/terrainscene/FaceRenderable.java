@@ -1,6 +1,9 @@
 package terrainscene;
 
 import game.gameModel.Renderable;
+import java.nio.file.Files;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import jswing.Texture;
 import terrain.BlockType;
 import terrain.TerrainCoordinates;
@@ -10,14 +13,22 @@ import terrain.TerrainCoordinates;
  *
  * <p>A tile that stands several levels higher than the tile in front of it shows one face per
  * level, stacked, so cliffs look as tall as they are. The top step uses an image chosen by the
- * tile's block type, such as a grassy lip under grass; the steps below it are plain.
+ * tile's block type, such as a grassy lip under grass. The steps below it are plain earth, unless
+ * the block type has a face image of its own (a folder named after it under {@link
+ * #TEXTURE_FOLDER}), as sand and snow do, being sand or snow all the way down.
  */
 public final class FaceRenderable implements TerrainPiece {
 
   private static final long serialVersionUID = 1L;
 
-  /** Image folder, under the textures root, for the plain face steps. */
+  /**
+   * Image folder, under the textures root, for the plain face steps; a block type with lower steps
+   * of its own has a folder named after it inside.
+   */
   static final String TEXTURE_FOLDER = TileRenderable.TEXTURE_FOLDER + "face";
+
+  /** Each block type's folder for its lower steps, looked up once. */
+  private static final Map<BlockType, String> LOWER_STEP_FOLDERS = new ConcurrentHashMap<>();
 
   /** Image folder, under the textures root, holding one top-step image folder per block type. */
   static final String TOP_STEP_TEXTURE_FOLDER = TileRenderable.TEXTURE_FOLDER + "facetop/";
@@ -46,7 +57,26 @@ public final class FaceRenderable implements TerrainPiece {
     this.blockY = blockY;
     this.level = level;
     this.topStep = topStep;
-    this.imageFolder = topStep ? TOP_STEP_TEXTURE_FOLDER + tileType.getLabel() : TEXTURE_FOLDER;
+    this.imageFolder =
+        topStep ? TOP_STEP_TEXTURE_FOLDER + tileType.getLabel() : lowerStepFolder(tileType);
+  }
+
+  /**
+   * Returns the image folder for a block type's lower face steps: its own, if it has one, or else
+   * the plain face.
+   *
+   * @param tileType the block type on top of the tile
+   * @return an image folder, under the textures root
+   */
+  static String lowerStepFolder(BlockType tileType) {
+    return LOWER_STEP_FOLDERS.computeIfAbsent(
+        tileType,
+        type -> {
+          String own = TEXTURE_FOLDER + "/" + type.getLabel();
+          return Files.isDirectory(TerrainImages.TEXTURES_ROOT.resolve(own))
+              ? own
+              : TEXTURE_FOLDER;
+        });
   }
 
   /**

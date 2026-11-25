@@ -20,7 +20,7 @@ class ChunkPainterTest {
 
   @Test
   void chunkImageIsTallEnoughForItsHighestTile() {
-    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(-2, 3);
+    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(-2, 3, TerrainLight.DEFAULT);
     int maxHeight = 0;
     for (int x = -32; x < -16; x++) {
       for (int y = 48; y < 64; y++) {
@@ -54,8 +54,38 @@ class ChunkPainterTest {
   }
 
   @Test
+  void chunkImagesMatchPiecesAtOtherTimesOfDay() {
+    // Evening (shadows to the right, left rims lit), half strength, night, rain cloud, and a
+    // lightning strike (sharp dark shadows, glowing tops, dark faces).
+    TerrainLight[] suns = {
+      new TerrainLight(38, -18, 1, 1, true, 0, 0),
+      new TerrainLight(24, -10, 0.5, 0.5, true, 0, 0),
+      TerrainLight.NIGHT,
+      TerrainLight.DEFAULT.overcast(0.85),
+      TerrainLight.lightningStrike(2.3)
+    };
+    for (TerrainLight sun : suns) {
+      TerrainScene pieces = piecesScene();
+      pieces.update(-46_800, 26_100, sun);
+      ChunkedTerrainScene chunks = chunkScene();
+      chunks.update(-46_800, 26_100, sun);
+      BufferedImage expected = draw(pieces, -46_800, 26_100);
+      BufferedImage actual = draw(chunks, -46_800, 26_100);
+      int different = 0;
+      for (int x = 0; x < VIEW_WIDTH; x++) {
+        for (int y = 0; y < VIEW_HEIGHT; y++) {
+          if (!sameColour(expected.getRGB(x, y), actual.getRGB(x, y))) {
+            different++;
+          }
+        }
+      }
+      assertEquals(0, different, "pixels differ for " + sun);
+    }
+  }
+
+  @Test
   void raisedTilesLeaveTransparentSpaceAboveLowerOnes() {
-    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(0, 0);
+    ChunkImage chunk = new ChunkPainter(terrain, new TerrainImages()).paint(0, 0, TerrainLight.DEFAULT);
     BufferedImage image = chunk.image();
     int transparent = 0;
     for (int x = 0; x < image.getWidth(); x += 4) {
@@ -84,6 +114,11 @@ class ChunkPainterTest {
     } else if (scene instanceof ChunkedTerrainScene chunks) {
       chunks.update(playerX, playerY);
     }
+    return draw(scene, playerX, playerY);
+  }
+
+  /** Draws an already updated scene through the game's real renderer into an image. */
+  private static BufferedImage draw(Iterable<Renderable> scene, double playerX, double playerY) {
     JPanel panel = new JPanel();
     panel.setLayout(null);
     panel.setSize(VIEW_WIDTH, VIEW_HEIGHT);

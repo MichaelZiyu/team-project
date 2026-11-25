@@ -21,13 +21,17 @@ class ChunkedTerrainSceneTest {
   /** How often each chunk was painted, keyed "x,y". */
   private final Map<String, Integer> paintCounts = new HashMap<>();
 
+  /** The lighting each chunk image was painted with. */
+  private final Map<BufferedImage, TerrainLight> paintedWith = new HashMap<>();
+
   /** Work handed to the "background thread"; run when the test says so. */
   private final List<Runnable> queued = new ArrayList<>();
 
-  private ChunkImage fakePaint(int chunkX, int chunkY) {
+  private ChunkImage fakePaint(int chunkX, int chunkY, TerrainLight sun) {
     paintCounts.merge(chunkX + "," + chunkY, 1, Integer::sum);
-    return new ChunkImage(
-        chunkX, chunkY, new BufferedImage(4, 4, BufferedImage.TYPE_INT_ARGB), chunkY * CHUNK_PX);
+    BufferedImage image = new BufferedImage(4, 4, BufferedImage.TYPE_INT_ARGB);
+    paintedWith.put(image, sun);
+    return new ChunkImage(chunkX, chunkY, image, chunkY * CHUNK_PX);
   }
 
   /** A scene that paints immediately, as if the background thread were instant. */
@@ -45,6 +49,12 @@ class ChunkedTerrainSceneTest {
     List<Runnable> work = new ArrayList<>(queued);
     queued.clear();
     work.forEach(Runnable::run);
+  }
+
+  /** Returns the image a chunk sprite shows. */
+  private static BufferedImage imageOf(ChunkRenderable chunk) {
+    javax.swing.Icon icon = chunk.getTexture().getContent().getIcon();
+    return (BufferedImage) ((javax.swing.ImageIcon) icon).getImage();
   }
 
   private static List<ChunkRenderable> chunks(ChunkedTerrainScene scene) {
@@ -136,11 +146,11 @@ class ChunkedTerrainSceneTest {
     boolean[] fail = {true};
     ChunkedTerrainScene scene =
         new ChunkedTerrainScene(
-            (x, y) -> {
+            (x, y, sun) -> {
               if (fail[0]) {
                 throw new IllegalStateException("simulated failure");
               }
-              return fakePaint(x, y);
+              return fakePaint(x, y, sun);
             },
             Runnable::run,
             VIEW_WIDTH,
@@ -155,8 +165,114 @@ class ChunkedTerrainSceneTest {
   }
 
   @Test
+  void movingSunRepaintsEveryChunkAndSwapsThemAllAtOnce() {
+    ChunkedTerrainScene scene = delayedScene();
+    scene.update(0, 0, TerrainLight.DEFAULT);
+    runQueued();
+    scene.update(0, 0, TerrainLight.DEFAULT);
+    int shown = scene.displayedCount();
+    TerrainLight later = new TerrainLight(-20, -30, 1, 1, true, 0, 0);
+    scene.update(0, 0, later);
+    assertTrue(scene.isRelighting());
+    assertEquals(shown, queued.size(), "every chunk around the player is repainted");
+    // Finish all but one: the old images must all stay, so no seam shows between lightings.
+    Runnable last = queued.remove(queued.size() - 1);
+    runQueued();
+    scene.update(0, 0, later);
+    assertTrue(scene.isRelighting());
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(TerrainLight.DEFAULT, paintedWith.get(imageOf(chunk)));
+    }
+    last.run();
+    scene.update(0, 0, later);
+    assertTrue(!scene.isRelighting());
+    assertEquals(shown, scene.displayedCount());
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(later, paintedWith.get(imageOf(chunk)));
+    }
+  }
+
+  @Test
+  void tinySunMovementsDoNotRepaint() {
+    ChunkedTerrainScene scene = instantScene(0);
+    scene.update(0, 0, TerrainLight.DEFAULT);
+    int painted = paintCounts.values().stream().mapToInt(Integer::intValue).sum();
+    scene.update(0, 0, new TerrainLight(-31, -15, 0.95, 0.95, true, 0, 0));
+    assertEquals(painted, paintCounts.values().stream().mapToInt(Integer::intValue).sum());
+    scene.update(0, 0, TerrainLight.NIGHT);
+    assertEquals(2 * painted, paintCounts.values().stream().mapToInt(Integer::intValue).sum());
+    // Night stays night: nothing to repaint until the sun comes up.
+    scene.update(0, 0, TerrainLight.NIGHT);
+    assertEquals(2 * painted, paintCounts.values().stream().mapToInt(Integer::intValue).sum());
+  }
+
+  @Test
+  void aRepaintFinishesBeforeTheNextOneStartsFromTheLatestSun() {
+    ChunkedTerrainScene scene = delayedScene();
+    scene.update(0, 0, TerrainLight.DEFAULT);
+    runQueued();
+    scene.update(0, 0, TerrainLight.DEFAULT);
+    TerrainLight first = new TerrainLight(-20, -30, 1, 1, true, 0, 0);
+    scene.update(0, 0, first);
+    int requests = queued.size();
+    // The sun keeps moving while the first repaint is under way: nothing new is requested yet.
+    scene.update(0, 0, new TerrainLight(0, -30, 1, 1, true, 0, 0));
+    TerrainLight latest = new TerrainLight(20, -30, 1, 1, true, 0, 0);
+    scene.update(0, 0, latest);
+    assertEquals(requests, queued.size());
+    runQueued();
+    scene.update(0, 0, latest);
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(first, paintedWith.get(imageOf(chunk)), "the first repaint is shown");
+    }
+    // On the next frame the next repaint starts, straight for the latest sun.
+    scene.update(0, 0, latest);
+    assertTrue(scene.isRelighting());
+    assertEquals(requests, queued.size());
+    runQueued();
+    scene.update(0, 0, latest);
+    assertTrue(!scene.isRelighting());
+    for (ChunkRenderable chunk : chunks(scene)) {
+      assertEquals(latest, paintedWith.get(imageOf(chunk)));
+    }
+  }
+
+  @Test
   void negativeRenderDistanceIsRejected() {
     assertThrows(IllegalArgumentException.class, () -> instantScene(-1));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ChunkedTerrainScene(42L, VIEW_WIDTH, VIEW_HEIGHT, -1));
+  }
+
+  @Test
+  void sceneMadeFromASeedPaintsTheChunksAroundThePlayer() throws InterruptedException {
+    ChunkedTerrainScene scene = new ChunkedTerrainScene(42L, VIEW_WIDTH, VIEW_HEIGHT, 0);
+    int expected = expectedChunks(0, 0, 0);
+    long deadline = System.currentTimeMillis() + 20_000;
+    scene.update(0, 0);
+    while (scene.displayedCount() < expected && System.currentTimeMillis() < deadline) {
+      Thread.sleep(20);
+      scene.update(0, 0);
+    }
+    assertEquals(expected, scene.displayedCount());
+  }
+
+  @Test
+  void sameSeedPaintsTheSameChunkAsTheSameTerrain() {
+    ChunkPainter fromSeed =
+        new ChunkPainter(terrain.OverworldTerrain.fromSeed(7L), new TerrainImages());
+    ChunkPainter again =
+        new ChunkPainter(terrain.OverworldTerrain.fromSeed(7L), new TerrainImages());
+    BufferedImage first = fromSeed.paint(1, -2, TerrainLight.DEFAULT).image();
+    BufferedImage second = again.paint(1, -2, TerrainLight.DEFAULT).image();
+    assertEquals(first.getWidth(), second.getWidth());
+    assertEquals(first.getHeight(), second.getHeight());
+    for (int x = 0; x < first.getWidth(); x += 7) {
+      for (int y = 0; y < first.getHeight(); y += 7) {
+        assertEquals(first.getRGB(x, y), second.getRGB(x, y));
+      }
+    }
   }
 
   @Test

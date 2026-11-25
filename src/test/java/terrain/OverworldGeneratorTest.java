@@ -110,7 +110,8 @@ class OverworldGeneratorTest {
           blocks.add(generator.blockAt(blockX, blockY));
           maxHeight[0] = Math.max(maxHeight[0], generator.heightAt(blockX, blockY));
         });
-    assertEquals(EnumSet.allOf(Biome.class), biomes);
+    // Every biome of the overworld; caves are a world of their own (CaveTerrain).
+    assertEquals(EnumSet.of(Biome.PLAINS, Biome.DESERT, Biome.MOUNTAINS), biomes);
     assertTrue(blocks.contains(BlockType.WATER), "no water found");
     assertTrue(blocks.contains(BlockType.SNOW), "no snowy peaks found");
     assertTrue(maxHeight[0] >= OverworldGenerator.SNOW_LINE, "tallest hill: " + maxHeight[0]);

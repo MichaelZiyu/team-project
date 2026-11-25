@@ -6,13 +6,13 @@ import javax.swing.JLabel;
 import jswing.Texture;
 
 /**
- * A {@link Texture} showing an image made in memory, such as a painted chunk.
+ * A {@link Texture} showing an image made in memory, such as a painted chunk or the weather.
  *
  * <p>The game's {@code Texture} can only load image files, so this adapter (the Adapter pattern)
  * lets the renderer show a chunk image without changing that class. It is a stopgap: once {@code
  * Texture} can be built from an image directly, this class can be removed.
  */
-final class ImageTexture extends Texture {
+public final class ImageTexture extends Texture {
 
   /** A small existing texture folder the parent constructor can load; its frames are unused. */
   private static final String UNUSED_PARENT_FOLDER = TileRenderable.TEXTURE_FOLDER + "air";
@@ -26,7 +26,7 @@ final class ImageTexture extends Texture {
    *
    * @param image the image to show
    */
-  ImageTexture(BufferedImage image) {
+  public ImageTexture(BufferedImage image) {
     super(UNUSED_PARENT_FOLDER);
     this.label = new JLabel(new ImageIcon(image));
     this.width = image.getWidth();

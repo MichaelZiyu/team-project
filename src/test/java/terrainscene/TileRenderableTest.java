@@ -93,7 +93,7 @@ class TileRenderableTest {
   void softShadowIsDarkestWhereAllLayersOverlapAndFainterWhereFewDo() {
     Area band = new Area(new Rectangle2D.Double(0, 48, 64, 16));
     Area wider = new Area(new Rectangle2D.Double(0, 32, 64, 32));
-    ShadowRenderable shadow = new ShadowRenderable(0, 0, 1, List.of(band, band, wider));
+    ShadowRenderable shadow = new ShadowRenderable(0, 0, 1, List.of(band, band, wider), 1);
     BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = image.createGraphics();
     shadow.paintOnto(g, 0, 0, null);
@@ -104,12 +104,12 @@ class TileRenderableTest {
     assertTrue(faint > 0 && faint < full, "one layer of three is fainter");
     assertEquals(0, image.getRGB(10, 40) >>> 24);
     assertTrue(shadow.getShape().equals(wider));
-    assertThrows(IllegalArgumentException.class, () -> new ShadowRenderable(0, 0, 1, List.of()));
+    assertThrows(IllegalArgumentException.class, () -> new ShadowRenderable(0, 0, 1, List.of(), 1));
   }
 
   @Test
   void sunlightCoversItsTileTop() {
-    SunlightRenderable sunlight = new SunlightRenderable(2, 3, 4);
+    SunlightRenderable sunlight = new SunlightRenderable(2, 3, 4, 1);
     TileRenderable tile = new TileRenderable(2, 3, BlockType.GRASS, 4);
     assertEquals(tile.getX(), sunlight.getX());
     assertEquals(tile.getY(), sunlight.getY());
@@ -117,6 +117,26 @@ class TileRenderableTest {
     assertEquals(64, sunlight.getHeight());
     assertEquals(64, sunlight.getTexture().getWidth());
     assertEquals(64, sunlight.getTexture().getHeight());
+  }
+
+  @Test
+  void sunlightAndShadowsFadeWithTheirStrength() {
+    BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = image.createGraphics();
+    new SunlightRenderable(0, 0, 1, 0.5).paintOnto(g, 0, 0, null);
+    g.dispose();
+    int half = SunlightRenderable.SUNLIGHT_COLOUR.getAlpha() / 2;
+    assertTrue(Math.abs((image.getRGB(5, 5) >>> 24) - half) <= 1);
+    Area all = new Area(new Rectangle2D.Double(0, 0, 64, 64));
+    image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+    g = image.createGraphics();
+    new ShadowRenderable(0, 0, 1, List.of(all), 0.5).paintOnto(g, 0, 0, null);
+    g.dispose();
+    int fullAlpha = ShadowRenderable.SHADOW_COLOUR.getAlpha();
+    assertTrue(Math.abs((image.getRGB(5, 5) >>> 24) - fullAlpha / 2) <= 1);
+    assertThrows(IllegalArgumentException.class, () -> new SunlightRenderable(0, 0, 1, 2));
+    assertThrows(
+        IllegalArgumentException.class, () -> new ShadowRenderable(0, 0, 1, List.of(all), -1));
   }
 
   @Test
@@ -143,23 +163,23 @@ class TileRenderableTest {
     int left = 2 * 64;
     int bottom = 3 * 64 + 4 * STEP;
     int thick = RimRenderable.THICKNESS_PX;
-    RimRenderable back = new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.BACK);
+    RimRenderable back = new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.BACK, 0);
     assertEquals(left + 32, back.getX());
     assertEquals(bottom + 64 - thick, back.getY());
     assertEquals(64, back.getWidth());
     assertEquals(thick, back.getHeight());
-    RimRenderable front = new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.FRONT);
+    RimRenderable front = new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.FRONT, 0);
     assertEquals(left + 32, front.getX());
     assertEquals(bottom, front.getY());
     assertEquals(64, front.getWidth());
     assertEquals(thick, front.getHeight());
-    RimRenderable leftRim = new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.LEFT);
+    RimRenderable leftRim = new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.LEFT, 1);
     // The renderer places a sprite at getX() - width / 2, which must be the tile's left edge.
     assertEquals(left, leftRim.getX() - leftRim.getWidth() / 2);
     assertEquals(bottom, leftRim.getY());
     assertEquals(64, leftRim.getHeight());
     RimRenderable rightRim =
-        new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.RIGHT);
+        new RimRenderable(2, 3, BlockType.GRASS, 4, Edge.RIGHT, 0.5);
     assertEquals(left + 64 - thick, rightRim.getX() - rightRim.getWidth() / 2);
   }
 
@@ -167,11 +187,33 @@ class TileRenderableTest {
   void everyBlockTypeHasRimImagesForEverySide() {
     for (BlockType type : BlockType.values()) {
       for (Edge side : Edge.values()) {
-        RimRenderable rim = new RimRenderable(0, 0, type, 1, side);
-        assertEquals(rim.getWidth(), rim.getTexture().getWidth(), type + " " + side);
-        assertEquals(rim.getHeight(), rim.getTexture().getHeight(), type + " " + side);
+        for (double light : new double[] {0, 0.5, 1}) {
+          RimRenderable rim = new RimRenderable(0, 0, type, 1, side, light);
+          String name = type + " " + side + " at light " + light;
+          assertEquals(rim.getWidth(), rim.getTexture().getWidth(), name);
+          assertEquals(rim.getHeight(), rim.getTexture().getHeight(), name);
+        }
       }
     }
+  }
+
+  @Test
+  void partLitRimBlendsBetweenTheDarkAndBrightImages() {
+    TerrainImages images = new TerrainImages();
+    int dark = images.get(RimRenderable.TEXTURE_FOLDER + "grass/right").getRGB(1, 1);
+    int bright = images.get(RimRenderable.LIT_TEXTURE_FOLDER + "grass/right").getRGB(1, 1);
+    BufferedImage image = new BufferedImage(3, 64, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = image.createGraphics();
+    new RimRenderable(0, 0, BlockType.GRASS, 1, Edge.RIGHT, 0.5).paintOnto(g, 0, 0, images);
+    g.dispose();
+    int blended = image.getRGB(1, 1);
+    for (int shift = 0; shift <= 16; shift += 8) {
+      int expected = (((dark >> shift) & 0xFF) + ((bright >> shift) & 0xFF)) / 2;
+      assertTrue(Math.abs(((blended >> shift) & 0xFF) - expected) <= 1, "halfway at " + shift);
+    }
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new RimRenderable(0, 0, BlockType.GRASS, 1, Edge.RIGHT, 1.5));
   }
 
   @Test

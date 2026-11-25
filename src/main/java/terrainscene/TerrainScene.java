@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import terrain.BlockPos;
 import terrain.BlockType;
+import terrain.CaveEntrance;
 import terrain.Terrain;
 import terrain.TerrainCoordinates;
 
@@ -65,19 +66,67 @@ public final class TerrainScene implements Iterable<Renderable> {
      * @param height the shaded tile's terrace height
      * @param layers the shadow cast from several sun positions, in the tile's own coordinates (y
      *     up), as from {@link SunShadows#softShadowOn}; at least one is not empty
+     * @param strength how strong sunlight is, from 0 to 1, which scales the shadow's darkness
      * @return a renderable for the shadow
      */
-    Renderable shadow(int blockX, int blockY, int height, List<Area> layers);
+    Renderable shadow(int blockX, int blockY, int height, List<Area> layers, double strength);
 
     /**
-     * Creates the warm overlay that lights a tile's top.
+     * Creates the warm overlay that lights a tile's top during the day.
      *
      * @param blockX the tile's x coordinate, in blocks
      * @param blockY the tile's y coordinate, in blocks
      * @param height the tile's terrace height
+     * @param strength how strong sunlight is, from 0 (exclusive) to 1
      * @return a renderable for the overlay
      */
-    Renderable sunlight(int blockX, int blockY, int height);
+    Renderable sunlight(int blockX, int blockY, int height, double strength);
+
+    /**
+     * Creates a glow that brightens a tile's top, as a lightning strike does.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param height the tile's terrace height
+     * @param amount how strong the glow is, from 0 (exclusive) to 1 (white)
+     * @return a renderable for the glow
+     */
+    Renderable topGlow(int blockX, int blockY, int height, double amount);
+
+    /**
+     * Creates a darkening over one step of a tile's face, as a lightning strike leaves.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param level which step it covers
+     * @param amount how dark it is, from 0 (exclusive) to 1 (black)
+     * @return a renderable for the darkening
+     */
+    Renderable faceDarkening(int blockX, int blockY, int level, double amount);
+
+    /**
+     * Creates a flower lying on a grass tile's top.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param height the tile's terrace height
+     * @param name which flower (see {@link Flowers})
+     * @return a renderable for the flower
+     */
+    Renderable flower(int blockX, int blockY, int height, String name);
+
+    /**
+     * Creates one tile's part of a cave entrance's opening, lying on the tile's top.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param height the tile's terrace height
+     * @param entrance the entrance covering the tile
+     * @param surface the tile's block type, the ground the entrance opens in
+     * @return a renderable for the tile's part of the opening
+     */
+    Renderable caveEntrance(
+        int blockX, int blockY, int height, CaveEntrance entrance, BlockType surface);
 
     /**
      * Creates a rim along one edge of a tile's top.
@@ -87,9 +136,28 @@ public final class TerrainScene implements Iterable<Renderable> {
      * @param type the tile's block type, which picks the rim colour
      * @param height the tile's terrace height
      * @param side which edge the rim runs along
+     * @param light how much sunlight the edge catches, from 0 (dark) to 1 (bright)
      * @return a renderable for the rim
      */
-    Renderable rim(int blockX, int blockY, BlockType type, int height, Edge side);
+    Renderable rim(int blockX, int blockY, BlockType type, int height, Edge side, double light);
+
+    /**
+     * Creates a rim along one edge of a tile's top, gilded by golden hour. Pieces that do not
+     * show golden hour can leave this out: by default the rim is not gilded.
+     *
+     * @param blockX the tile's x coordinate, in blocks
+     * @param blockY the tile's y coordinate, in blocks
+     * @param type the tile's block type, which picks the rim colour
+     * @param height the tile's terrace height
+     * @param side which edge the rim runs along
+     * @param light how much sunlight the edge catches, from 0 (dark) to 1 (bright)
+     * @param glow how strongly golden hour gilds it, from 0 (not at all) to 1 (bright orange-yellow)
+     * @return a renderable for the rim
+     */
+    default Renderable rim(
+        int blockX, int blockY, BlockType type, int height, Edge side, double light, double glow) {
+      return rim(blockX, blockY, type, height, side, light);
+    }
 
     /**
      * Creates an ambient-occlusion gradient along one edge of a tile's top.
@@ -140,6 +208,7 @@ public final class TerrainScene implements Iterable<Renderable> {
 
   private Map<BlockPos, List<Renderable>> tiles = new LinkedHashMap<>();
   private BlockPos centre;
+  private TerrainLight sun = TerrainLight.DEFAULT;
   private int pieceCount;
 
   /**
@@ -174,20 +243,33 @@ public final class TerrainScene implements Iterable<Renderable> {
   }
 
   /**
-   * Moves the scene to be centred on the player. Does nothing if the player is still in the
-   * same block as last time.
+   * Moves the scene to be centred on the player, lit by the default sun. Does nothing if the
+   * player is still in the same block as last time.
    *
    * @param playerX the player's x position, in pixels
    * @param playerY the player's y position, in pixels
    */
   public void update(double playerX, double playerY) {
+    update(playerX, playerY, TerrainLight.DEFAULT);
+  }
+
+  /**
+   * Moves the scene to be centred on the player and lit by the given sun. Tiles are rebuilt only
+   * when the player enters a different block or the lighting changes.
+   *
+   * @param playerX the player's x position, in pixels
+   * @param playerY the player's y position, in pixels
+   * @param sun how the sun lights the terrain
+   */
+  public void update(double playerX, double playerY, TerrainLight sun) {
     BlockPos newCentre =
         new BlockPos(
             TerrainCoordinates.pixelToBlock(playerX), TerrainCoordinates.pixelToBlock(playerY));
-    if (newCentre.equals(centre)) {
+    if (newCentre.equals(centre) && sun.equals(this.sun)) {
       return;
     }
-    Map<BlockPos, List<Renderable>> oldTiles = tiles;
+    Map<BlockPos, List<Renderable>> oldTiles = sun.equals(this.sun) ? tiles : Map.of();
+    this.sun = sun;
     Map<BlockPos, List<Renderable>> newTiles = new LinkedHashMap<>();
     int count = 0;
     // Nearest row (lowest y) first, so it is drawn on top of the rows behind it.
@@ -200,7 +282,7 @@ public final class TerrainScene implements Iterable<Renderable> {
         BlockPos position = new BlockPos(blockX, blockY);
         List<Renderable> pieces = oldTiles.get(position);
         if (pieces == null) {
-          pieces = tilePieces.build(blockX, blockY);
+          pieces = tilePieces.build(blockX, blockY, sun);
         }
         newTiles.put(position, pieces);
         count += pieces.size();

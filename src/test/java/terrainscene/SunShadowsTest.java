@@ -136,6 +136,35 @@ class SunShadowsTest {
   }
 
   @Test
+  void eveningShadowsFallToTheRight() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(0, 0, 3));
+    TerrainLight evening = new TerrainLight(40, -20, 1, 1, true, 0, 0);
+    assertFalse(shadows.shadowOn(1, 0, evening).isEmpty(), "the tile to the east is shaded");
+    assertTrue(shadows.shadowOn(-1, 0, evening).isEmpty(), "the tile to the west is lit");
+    TerrainLight morning = new TerrainLight(-40, -20, 1, 1, true, 0, 0);
+    assertTrue(shadows.shadowOn(1, 0, morning).isEmpty());
+    assertFalse(shadows.shadowOn(-1, 0, morning).isEmpty());
+  }
+
+  @Test
+  void noonShadowsFallStraightSouth() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(0, 1, 3));
+    TerrainLight noon = new TerrainLight(0, -12, 1, 1, true, 0, 0);
+    Area below = shadows.shadowOn(0, 0, noon);
+    assertTrue(below.contains(32, 60), "just south of the wall is shaded");
+    assertTrue(shadows.shadowOn(1, 0, noon).isEmpty(), "nothing falls sideways at noon");
+  }
+
+  @Test
+  void nothingIsShadedAtNight() {
+    SunShadows shadows = new SunShadows(new FakeTerrain().set(1, 0, 5));
+    assertTrue(shadows.shadowOn(0, 0, TerrainLight.NIGHT).isEmpty());
+    for (Area layer : shadows.softShadowOn(0, 0, TerrainLight.NIGHT)) {
+      assertTrue(layer.isEmpty());
+    }
+  }
+
+  @Test
   void realTerrainShadowsStayInsideTheirTile() {
     SunShadows shadows = new SunShadows(OverworldTerrain.fromSeed(42L));
     Rectangle2D tile = new Rectangle2D.Double(0, 0, 64, 64);

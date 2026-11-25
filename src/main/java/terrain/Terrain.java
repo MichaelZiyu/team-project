@@ -1,5 +1,7 @@
 package terrain;
 
+import java.util.List;
+
 /**
  * Read-only access to a world's terrain: the single entry point for the rest of the game.
  *
@@ -52,4 +54,30 @@ public interface Terrain {
    * @return the spawn position; always on land, and the same every time for this terrain
    */
   BlockPos spawnPoint();
+
+  /**
+   * Returns the cave entrance covering a tile, if there is one there. Terrain without caves has
+   * none.
+   *
+   * @param blockX the tile's x coordinate, in blocks
+   * @param blockY the tile's y coordinate, in blocks
+   * @return the entrance, or {@code null} if the tile is not part of one
+   */
+  default CaveEntrance caveEntranceAt(int blockX, int blockY) {
+    return null;
+  }
+
+  /**
+   * Returns the cave entrances near a point, nearest first; for example, to offer the player a way
+   * in when they come close to one. Terrain without caves has none.
+   *
+   * @param worldX the point's x position, in world pixels
+   * @param worldY the point's y position, in world pixels
+   * @param radiusPx how far from the point an entrance's middle may be, in world pixels
+   * @return the entrances found, nearest first
+   */
+  default List<CaveEntrance> caveEntrancesNear(
+      double worldX, double worldY, double radiusPx) {
+    return List.of();
+  }
 }

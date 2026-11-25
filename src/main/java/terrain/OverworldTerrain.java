@@ -1,6 +1,7 @@
 package terrain;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +28,7 @@ public final class OverworldTerrain implements Terrain {
   private static final long LOW_32_BITS = 0xFFFFFFFFL;
 
   private final OverworldGenerator generator;
+  private final CaveEntrances caves;
   private final Map<Long, Chunk> cache;
   private BlockPos spawn;
 
@@ -51,6 +53,7 @@ public final class OverworldTerrain implements Terrain {
       throw new IllegalArgumentException("cacheChunks must be at least 1: " + cacheChunks);
     }
     this.generator = generator;
+    this.caves = new CaveEntrances(this, generator.seed());
     // Access order (the "true") keeps the least recently used chunk first, so it is evicted.
     this.cache =
         new LinkedHashMap<>(cacheChunks, CACHE_LOAD_FACTOR, true) {
@@ -81,6 +84,16 @@ public final class OverworldTerrain implements Terrain {
   public int heightAt(int blockX, int blockY) {
     return chunkContaining(blockX, blockY)
         .heightAt(TerrainCoordinates.blockToLocal(blockX), TerrainCoordinates.blockToLocal(blockY));
+  }
+
+  @Override
+  public CaveEntrance caveEntranceAt(int blockX, int blockY) {
+    return caves.at(blockX, blockY);
+  }
+
+  @Override
+  public List<CaveEntrance> caveEntrancesNear(double worldX, double worldY, double radiusPx) {
+    return caves.near(worldX, worldY, radiusPx);
   }
 
   @Override
