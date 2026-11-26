@@ -1,8 +1,5 @@
 package game.serverAccess;
 
-import game.interactor.World;
-import game.interactor.inputData.WorldState;
-
 class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoundary {
     private ServerReceiverData prevMessage;
     private ServerSenderBoundary senderBoundary;
@@ -25,5 +22,10 @@ class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoun
     public void sendMessage(ServerSenderData data)
     {
         senderBoundary.sendMessage(data);
+    }
+
+    @Override
+    public void closeConnection(int statusCode, String reason) {
+        senderBoundary.closeConnection(statusCode, reason);
     }
 }

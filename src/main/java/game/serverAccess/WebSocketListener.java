@@ -26,6 +26,6 @@ public class WebSocketListener implements WebSocket.Listener{
     @Override
     public void onError(WebSocket webSocket, Throwable error) {
         WebSocket.Listener.super.onError(webSocket, error);
-        System.out.println("non-initialization failure");
+        error.printStackTrace();
     }
 }

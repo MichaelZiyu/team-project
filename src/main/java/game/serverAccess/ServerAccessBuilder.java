@@ -9,10 +9,12 @@ public class ServerAccessBuilder {
     public ServerUseCaseInteractor build(String publicIP, String port)
     {
         URI uri = URI.create("ws://"+publicIP+":"+port);
-        ServerAccessObject newObject = new ServerAccessObject(uri);
+
+        ServerAccessObject newObject = new ServerAccessObject();
         ServerUseCaseInteractor newInteractor = new ServerUseCaseInteractor();
         newObject.initializeReceiverBoundary(newInteractor);
         newInteractor.initializeSenderBoundary(newObject);
+        newObject.connectWebsocket(uri);
 
         interactor = newInteractor;
         object = newObject;

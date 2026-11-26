@@ -13,26 +13,12 @@ class ServerAccessObject implements ServerSenderBoundary {
     private WebSocket webSocket;
     private WebSocket.Listener webSocketListener;
     private ServerReceiverBoundary receiverBoundary;
-    private volatile boolean connected;
 
-    ServerAccessObject(URI uri)
+    ServerAccessObject()
     {
-        connected = false;
         httpClient = HttpClient.newBuilder().build();
         builder = httpClient.newWebSocketBuilder();
         webSocketListener = new WebSocketListener(this);
-        CompletableFuture<WebSocket> pendingWebSocket = builder.buildAsync(uri, webSocketListener);
-        pendingWebSocket.whenComplete((completedWebSocket, exception) ->
-        {
-            if (exception != null)
-            {
-                System.out.println("conn failed");
-            }
-            else {
-                webSocket = completedWebSocket;
-                connected = true;
-            }
-        });
     }
 
     public void initializeReceiverBoundary(ServerReceiverBoundary serverUseCaseInteractor)
@@ -40,15 +26,22 @@ class ServerAccessObject implements ServerSenderBoundary {
         receiverBoundary = serverUseCaseInteractor;
     }
 
+    public void connectWebsocket(URI uri)
+    {
+        CompletableFuture<WebSocket> pendingWebSocket = builder.buildAsync(uri, webSocketListener);
+        try {
+            webSocket = pendingWebSocket.join();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("WebSocket connection failed", e);
+        }
+    }
+
     @Override
     public void sendMessage(ServerSenderData data) {
         //i do not handle the case where it doesn't successfully send BUT we are connected
-        if (connected) {
-            CompletableFuture<WebSocket> status = webSocket.sendText(convertSend(data), true);
-        }
-        else{
-            System.out.println("not connected");
-        }
+        CompletableFuture<WebSocket> status = webSocket.sendText(convertSend(data), true);
     }
 
     public void handleMessage(String data)
@@ -64,5 +57,10 @@ class ServerAccessObject implements ServerSenderBoundary {
     private String convertSend(ServerSenderData data)
     {
         return data.textFormatted();
+    }
+
+    public void closeConnection(int statusCode, String reason)
+    {
+        webSocket.sendClose(statusCode,reason);
     }
 }
