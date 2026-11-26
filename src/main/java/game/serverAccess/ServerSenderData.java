@@ -4,7 +4,7 @@ public class ServerSenderData {
     //dummy impl
     private String data;
 
-    ServerSenderData(String message){
+    public ServerSenderData(String message){
         this.data = message;
     }
 

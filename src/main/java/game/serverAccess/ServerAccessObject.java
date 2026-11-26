@@ -5,20 +5,19 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.concurrent.CompletableFuture;
 
-public class ServerAccessObject implements ServerSenderBoundary {
+class ServerAccessObject implements ServerSenderBoundary {
     //Lots of system prints, i am not handling any errors for this draft
 
     private HttpClient httpClient;
     private WebSocket.Builder builder;
     private WebSocket webSocket;
     private WebSocket.Listener webSocketListener;
-    private ServerReceiverBoundary serverUseCaseInteractor;
+    private ServerReceiverBoundary receiverBoundary;
     private volatile boolean connected;
 
-    ServerAccessObject(URI uri, ServerReceiverBoundary serverReceiverBoundary)
+    ServerAccessObject(URI uri)
     {
         connected = false;
-        serverUseCaseInteractor = serverReceiverBoundary;
         httpClient = HttpClient.newBuilder().build();
         builder = httpClient.newWebSocketBuilder();
         webSocketListener = new WebSocketListener(this);
@@ -36,6 +35,11 @@ public class ServerAccessObject implements ServerSenderBoundary {
         });
     }
 
+    public void initializeReceiverBoundary(ServerReceiverBoundary serverUseCaseInteractor)
+    {
+        receiverBoundary = serverUseCaseInteractor;
+    }
+
     @Override
     public void sendMessage(ServerSenderData data) {
         //i do not handle the case where it doesn't successfully send BUT we are connected
@@ -49,7 +53,7 @@ public class ServerAccessObject implements ServerSenderBoundary {
 
     public void handleMessage(String data)
     {
-        serverUseCaseInteractor.updateLocal(convertReceived(data));
+        receiverBoundary.updateLocal(convertReceived(data));
     }
 
     private ServerReceiverData convertReceived(String receivedMessage)
