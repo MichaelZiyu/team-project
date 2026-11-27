@@ -51,11 +51,13 @@ class ServerAccessObject implements ServerSenderBoundary {
 
     private ServerReceiverData convertReceived(String receivedMessage)
     {
+        //TODO
         return new ServerReceiverData(receivedMessage);
     }
 
     private String convertSend(ServerSenderData data)
     {
+        //TODO
         return data.textFormatted();
     }
 

@@ -16,11 +16,13 @@ class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoun
     }
     @Override
     public void updateLocal(ServerReceiverData data) {
+        //TODO
         System.out.println("received: " + data.textFormatted());
         prevMessage = data;
     }
     public void sendMessage(ServerSenderData data)
     {
+        //TODO
         senderBoundary.sendMessage(data);
     }
 
