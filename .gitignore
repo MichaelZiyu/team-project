@@ -39,3 +39,4 @@ build/
 .DS_Store
 
 /src/test/java/TestConnectToServer.java
+src/main/java/game/serverAccess/Multiplayer/multiplayer/node_modules
