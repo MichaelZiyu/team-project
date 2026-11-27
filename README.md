@@ -2,6 +2,26 @@ Notes for collaboration methods and class designs:
 - https://docs.google.com/document/d/1hk6UIoUFeQurILgY8SrJHeUEdcINJ-Gnw2gLwtYSpO0/edit?tab=t.0
 
 # Team Project
+## Milestone 2 MVP – Testing Guidelines
+
+### 1. Start the Game
+- Run `main` directly to launch the game.
+- If everything works correctly, the start menu should appear.
+
+### 2. Load the Sample World
+- Click **Start** in the start menu.
+- World generation has not been implemented yet. For testing purposes, a sample world is created in `main`, and clicking Start will take you directly to the Load Game menu.
+- Click **Load** to load the sample world and enter the game.
+
+### 3. Basic Gameplay
+- Use **W, A, S, D** to move the character in different directions and explore the map.
+- Hold **Shift** while moving to increase the character's movement speed.
+- Press **Esc** to exit the game.
+
+### 4. Cloud Save Configuration
+- The **Save** button is located at the bottom of the start menu.
+- The game supports saving world data (`.dat` files) to a Supabase database.
+- To use this feature, click **Save** and provide your Supabase API key and database URL when prompted.
 
 Please keep this up-to-date with information about your project throughout the term.
 
@@ -21,7 +41,6 @@ at the end of the term.
 - Yueheng Guan
 - Jimmy Zeng
 - Henry Xu
-- 
 ## Project Domain
 
 **Games and entertainment.** We are building a 2D sandbox adventure in Java with a Swing interface. 
