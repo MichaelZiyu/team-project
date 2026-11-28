@@ -1,12 +1,12 @@
 package game.serverAccess;
 
 class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoundary {
-    private ServerReceiverData prevMessage;
+    private ServerReceiverData savedMessage;
     private ServerSenderBoundary senderBoundary;
 
     public ServerUseCaseInteractor()
     {
-        prevMessage = new ServerReceiverData("");
+        savedMessage = new ServerReceiverData("");
     }
     public void initializeSenderBoundary(ServerSenderBoundary serverAccessObject)
     //note that it isn't immediately initialized
@@ -15,13 +15,12 @@ class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoun
     }
     @Override
     public void updateLocal(ServerReceiverData data) {
-        //TODO
-        System.out.println("received: " + data.textFormatted());
-        prevMessage = data;
+        System.out.println("received message");
+        savedMessage = data;
+        //this message can be turned into a WorldState object through
     }
     public void sendMessage(ServerSenderData data)
     {
-        //TODO
         senderBoundary.sendMessage(data);
     }
 

@@ -37,3 +37,18 @@ function handleClose(statusCode, reason)
 {
   console.log(statusCode + reason);
 }
+
+function broadcastState()
+{
+  const message = JSON.stringify(worldState);
+  webSocketServer.clients.forEach(client => sendState(client, message));
+}
+
+function sendState(client, message)
+{
+  if(client.readyState === 1){
+    client.send(message);
+  }
+}
+
+setInterval(broadcastState, 1000);

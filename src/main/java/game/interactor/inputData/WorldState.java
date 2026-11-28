@@ -11,6 +11,7 @@ public class WorldState {
 
     private Map<String, Object> stateMap;
     public WorldState(Set<? extends EntityObject> objects)
+            //for sending
     {
         Map<String, Object> newMap = new HashMap<>();
         for(EntityObject object: objects)
@@ -18,6 +19,11 @@ public class WorldState {
             newMap.put(object.getStats().getId(), object.getStats().getLocation());
         }
         this.stateMap = newMap;
+    }
+    public WorldState(Map<String, Object> pendingMap)
+            //for receiving
+    {
+        this.stateMap = new HashMap<>(pendingMap);
     }
 
     public Map<String, Object> getState(){

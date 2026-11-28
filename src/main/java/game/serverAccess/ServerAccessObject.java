@@ -1,8 +1,12 @@
 package game.serverAccess;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 class ServerAccessObject implements ServerSenderBoundary {
@@ -51,13 +55,7 @@ class ServerAccessObject implements ServerSenderBoundary {
 
     public void handleMessage(String data)
     {
-        receiverBoundary.updateLocal(convertReceived(data));
-    }
-
-    private ServerReceiverData convertReceived(String receivedMessage)
-    {
-        //TODO
-        return new ServerReceiverData(receivedMessage);
+        receiverBoundary.updateLocal(new ServerReceiverData(data));
     }
 
     public void closeConnection(int statusCode, String reason)
