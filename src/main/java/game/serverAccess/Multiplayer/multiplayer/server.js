@@ -6,7 +6,7 @@ webSocketServer.on('connection', handleConnection);
 
 let worldState = {};
 
-function handleConnection(clientConnection) 
+function handleConnection(clientConnection)
 {
   clientConnection.on('error', console.error);
 
@@ -35,7 +35,13 @@ function handleMessage(data, isBinary)
 
 function handleClose(statusCode, reason)
 {
-  console.log(statusCode + reason);
+  console.log("connection closed:" + statusCode + reason);
+
+  if(webSocketServer.clients.size === 0)
+  {
+    worldState = {};
+    console.log('Cleared worldState, no clients connected.');
+  }
 }
 
 function broadcastState()
@@ -52,3 +58,5 @@ function sendState(client, message)
 }
 
 setInterval(broadcastState, 1000);
+//WARNING: this keeps sending indefinitely, as long as server.js is running.
+//It's harmless for now, since an empty message is handled.
