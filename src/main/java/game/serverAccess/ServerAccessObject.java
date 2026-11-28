@@ -40,8 +40,13 @@ class ServerAccessObject implements ServerSenderBoundary {
 
     @Override
     public void sendMessage(ServerSenderData data) {
-        //i do not handle the case where it doesn't successfully send BUT we are connected
-        CompletableFuture<WebSocket> status = webSocket.sendText(convertSend(data), true);
+        try {
+            CompletableFuture<WebSocket> status = webSocket.sendText(data.toJson(), true);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("Attempted Send failed", e);
+        }
     }
 
     public void handleMessage(String data)
@@ -53,12 +58,6 @@ class ServerAccessObject implements ServerSenderBoundary {
     {
         //TODO
         return new ServerReceiverData(receivedMessage);
-    }
-
-    private String convertSend(ServerSenderData data)
-    {
-        //TODO
-        return data.textFormatted();
     }
 
     public void closeConnection(int statusCode, String reason)

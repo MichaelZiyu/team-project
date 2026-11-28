@@ -9,8 +9,7 @@ class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoun
         prevMessage = new ServerReceiverData("");
     }
     public void initializeSenderBoundary(ServerSenderBoundary serverAccessObject)
-    //note that it isn't immediately initialized because
-    //it is ok if we establish a connection w/ server first, before spinning up use case interactor
+    //note that it isn't immediately initialized
     {
         senderBoundary = serverAccessObject;
     }

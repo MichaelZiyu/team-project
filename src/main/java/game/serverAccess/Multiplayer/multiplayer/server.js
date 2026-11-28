@@ -4,6 +4,8 @@ const webSocketServer = new WebSocketServer({port: 8080});
 
 webSocketServer.on('connection', handleConnection);
 
+let worldState = {};
+
 function handleConnection(clientConnection) 
 {
   clientConnection.on('error', console.error);
@@ -17,7 +19,18 @@ function handleConnection(clientConnection)
 
 function handleMessage(data, isBinary)
 {
-  console.log('message: %s', data);
+  try{
+    const receivedState = JSON.parse(data.toString());
+    for(const [id, location] of Object.entries(receivedState))
+    {
+      worldState[id] = location;
+    }
+
+    console.log('Updated world state:');
+  }
+  catch (error) {
+    console.error("invalid json entry", error);
+  }
 }
 
 function handleClose(statusCode, reason)
