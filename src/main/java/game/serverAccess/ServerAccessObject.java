@@ -56,6 +56,8 @@ class ServerAccessObject implements ServerSenderBoundary {
     public void handleMessage(String data)
     {
         receiverBoundary.updateLocal(new ServerReceiverData(data));
+        //WARNING: IT IS ENTIRELY POSSIBLE THAT THIS METHOD IS CALLED BEFORE THE PLAYER
+        //HAS SENT ANY MESSAGE. IF SO, IT WILL BE AN EMPTY WORLDSTATE.
     }
 
     public void closeConnection(int statusCode, String reason)

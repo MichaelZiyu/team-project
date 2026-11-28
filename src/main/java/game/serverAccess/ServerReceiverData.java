@@ -15,6 +15,11 @@ class ServerReceiverData {
     ServerReceiverData(String message){
         data = message;
     }
+
+    public String getData() {
+        return data;
+    }
+
     public WorldState deserialize() {
         ObjectMapper mapper = new ObjectMapper();
         try {

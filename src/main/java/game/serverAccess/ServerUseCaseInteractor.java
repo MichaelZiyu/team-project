@@ -15,7 +15,7 @@ class ServerUseCaseInteractor implements ServerReceiverBoundary, ServerInputBoun
     }
     @Override
     public void updateLocal(ServerReceiverData data) {
-        System.out.println("received message");
+        System.out.println("received message" + data.getData());
         savedMessage = data;
         //this message can be turned into a WorldState object through
     }
