@@ -4,6 +4,7 @@ import game.interactor.gameModel.Texture;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * One frame of the game, ready for the renderer: where the camera is, everything to draw, in layers
@@ -52,6 +53,20 @@ public record RenderableData(
    * that a frame or two skipped by the renderer cannot lose it.
    */
   public static final double SOUND_EVENT_SECONDS = 0.25;
+
+  /** The last sound event number handed out. */
+  private static final AtomicLong LAST_SOUND_EVENT = new AtomicLong();
+
+  /**
+   * Returns a number for a new sound event: one no other sound event has had, and higher than all
+   * before it. Every part of the game making sound events takes its numbers from here, so they
+   * never clash. Safe to call from any thread.
+   *
+   * @return the number
+   */
+  public static long nextSoundEventNumber() {
+    return LAST_SOUND_EVENT.incrementAndGet();
+  }
 
   /**
    * Creates a frame. The lists are copied, so later changes to them do not affect the frame.
@@ -110,8 +125,8 @@ public record RenderableData(
   /**
    * A sound that plays once, such as a thunderclap.
    *
-   * @param number a number no other sound event of the game has; numbers from the same game should
-   *     only grow, so the player can forget old ones
+   * @param number a number no other sound event of the game has, from {@link
+   *     #nextSoundEventNumber}
    * @param name the sound, named by its file under the sound folder without the ending
    * @param volume how loud, from 0 (silent) to 1 (full)
    */
