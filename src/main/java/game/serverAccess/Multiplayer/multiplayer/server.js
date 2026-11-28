@@ -26,7 +26,7 @@ function handleMessage(data, isBinary)
       worldState[id] = location;
     }
 
-    console.log('Updated world state:');
+    console.log('Updated world state:', worldState);
   }
   catch (error) {
     console.error("invalid json entry", error);

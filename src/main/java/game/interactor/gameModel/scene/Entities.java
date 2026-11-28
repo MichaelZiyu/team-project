@@ -25,4 +25,9 @@ public class Entities extends Scene implements NetworkSerializable {
         WorldState state = new WorldState(entities);
         return new ServerSenderData(state);
     }
+
+    public void addEntity(Entity entity)
+    {
+        entities.add(entity);
+    }
 }

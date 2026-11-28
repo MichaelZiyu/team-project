@@ -15,7 +15,7 @@ public class WorldState {
         Map<String, Object> newMap = new HashMap<>();
         for(EntityObject object: objects)
         {
-            newMap.put(object.getID(), object.getLocation());
+            newMap.put(object.getStats().getId(), object.getStats().getLocation());
         }
         this.stateMap = newMap;
     }

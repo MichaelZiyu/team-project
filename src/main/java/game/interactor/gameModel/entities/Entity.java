@@ -28,12 +28,12 @@ public abstract class Entity extends PhysicsBody implements Serializable, Entity
     public abstract void loadTexture();
 
     @Override
-    public float[] getLocation() {
-        return stats.getLocation();
+    public EntityStats getStats() {
+        return stats;
     }
 
     @Override
-    public String getID() {
-        return stats.getId();
+    public void setStats(EntityStats stats) {
+        this.stats = stats;
     }
 }
