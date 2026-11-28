@@ -1,0 +1,14 @@
+package game.interactor.gameModel.scene;
+
+import game.interactor.World;
+
+/**
+ * responsible for holding and managing anything appeared on the map, including chuncked terrain
+ * and interactable items
+ */
+public class GameMap extends Scene{
+    @Override
+    public void tick(World world) {
+        //
+    }
+}

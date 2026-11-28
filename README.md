@@ -18,10 +18,9 @@ Notes for collaboration methods and class designs:
 - Hold **Shift** while moving to increase the character's movement speed.
 - Press **Esc** to exit the game.
 
-### 4. Cloud Save Configuration
-- The **Save** button is located at the bottom of the start menu.
-- The game supports saving world data (`.dat` files) to a Supabase database.
-- To use this feature, click **Save** and provide your Supabase API key and database URL when prompted.
+### 4. Multiplayer Feature
+- In the starting menu, there is an option to connect to a pre-determined server
+- Click the server, and you will join the world of whoever was first to connect to that server
 
 Please keep this up-to-date with information about your project throughout the term.
 
@@ -57,7 +56,7 @@ A front-view side-scrolling mode is in development.
 | 1 | As a player, I want to configurate setting and save my world so I can resume progress between plays. |
 | 2 | As a player, I want to walk and run through a diverse overworld so I can discover new areas.         |
 | 3 | As a player, I want to fight a monster so I can get past threats while exploring.                    |
-| 4 | As a player, I want to interact with the structures in the world so I can enter and explore them.    |
+| 4 | As a player, I want to see and interact with other players in a shared world.|
 
 ## Use Cases
 
@@ -95,7 +94,7 @@ A front-view side-scrolling mode is in development.
 
 ## API Usage
 APIs in Project:
-1. Multiplayer or trading system or leaderboard
+1. Multiplayer
 2. Weather
 
 ## Design Diagrams
